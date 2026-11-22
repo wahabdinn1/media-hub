@@ -54,7 +54,6 @@ export default function SettingsPage() {
         toggleModuleLocal(key);
       }
     }
-    // Sync only when server data updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.settings]);
 
@@ -138,7 +137,7 @@ export default function SettingsPage() {
     data?.quota ?? evaluateQuotaState({}, { killSwitchEnabled: persistedKillSwitch });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title={t.settings.title}
         subtitle={t.settings.subtitle}
@@ -154,19 +153,20 @@ export default function SettingsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
-          <div>
-            <h2 className="text-sm font-semibold text-text-primary">{t.settings.modulesTitle}</h2>
-            <p className="mt-0.5 text-xs text-text-secondary">{t.settings.modulesHint}</p>
+      {/* Editorial Ruled Settings Rows — zero nested card boxes */}
+      <div className="divide-y divide-border">
+        <section className="grid grid-cols-1 gap-6 pb-8 lg:grid-cols-12">
+          <div className="space-y-1 lg:col-span-4">
+            <h2 className="text-base font-medium text-text-primary">{t.settings.modulesTitle}</h2>
+            <p className="text-xs leading-relaxed text-text-secondary">{t.settings.modulesHint}</p>
           </div>
-          <div className="divide-y divide-border rounded-lg border border-border bg-bg">
+          <div className="divide-y divide-border/70 border-y border-border lg:col-span-8">
             {MODULE_KEYS.map((key) => {
               const enabled = persistedModules[key];
               return (
                 <label
                   key={key}
-                  className="flex cursor-pointer items-center justify-between gap-3 px-3.5 py-2.5 text-sm"
+                  className="flex cursor-pointer items-center justify-between gap-3 py-3 text-sm"
                 >
                   <span className="capitalize text-text-primary">{key}</span>
                   <input
@@ -185,77 +185,87 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
-          <div>
-            <h2 className="text-sm font-semibold text-text-primary">
+        <section className="grid grid-cols-1 gap-6 py-8 lg:grid-cols-12">
+          <div className="space-y-1 lg:col-span-4">
+            <h2 className="text-base font-medium text-text-primary">
               {t.settings.guardrailsTitle}
             </h2>
-            <p className="mt-0.5 text-xs text-text-secondary">{t.settings.guardrailsHint}</p>
+            <p className="text-xs leading-relaxed text-text-secondary">
+              {t.settings.guardrailsHint}
+            </p>
           </div>
+          <div className="space-y-4 lg:col-span-8">
+            <label className="flex cursor-pointer items-center justify-between gap-4 border-b border-border pb-4 text-sm">
+              <span className="font-medium text-text-primary">{t.settings.killSwitchLabel}</span>
+              <input
+                type="checkbox"
+                checked={persistedKillSwitch}
+                disabled={patchMutation.isPending}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setKillSwitchLocal(next);
+                  patchMutation.mutate({ killSwitchEnabled: next });
+                }}
+                className="h-4 w-4 accent-danger"
+              />
+            </label>
 
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-bg p-3.5 text-sm">
-            <span className="font-medium text-text-primary">{t.settings.killSwitchLabel}</span>
-            <input
-              type="checkbox"
-              checked={persistedKillSwitch}
-              disabled={patchMutation.isPending}
-              onChange={(e) => {
-                const next = e.target.checked;
-                setKillSwitchLocal(next);
-                patchMutation.mutate({ killSwitchEnabled: next });
-              }}
-              className="h-4 w-4 accent-danger"
-            />
-          </label>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4 text-sm">
+              <div>
+                <div className="font-medium text-text-primary">Appearance</div>
+                <p className="text-xs text-text-secondary">
+                  Dusk dark slate or warm bone light surface.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-1 rounded-full bg-surface p-1 text-xs">
+                {(["dark", "light"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setTheme(mode)}
+                    className={cn(
+                      "rounded-full px-3 py-1 font-medium capitalize transition-colors",
+                      theme === mode
+                        ? "bg-primary text-primary-foreground"
+                        : "text-text-secondary hover:text-text-primary",
+                    )}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-text-primary">{t.settings.languageTitle}</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div>
+                <div className="font-medium text-text-primary">{t.settings.languageTitle}</div>
+                <p className="text-xs text-text-secondary">{t.settings.languageValue}</p>
+              </div>
               <StatusBadge label={data?.settings.locale ?? "en"} tone="primary" />
             </div>
-            <p className="text-xs text-text-secondary">{t.settings.languageValue}</p>
           </div>
+        </section>
 
-          <div className="flex items-center justify-between rounded-lg border border-border bg-bg p-3.5 text-xs">
-            <span className="font-medium text-text-primary">Appearance</span>
-            <div className="inline-flex rounded-md border border-border bg-surface p-0.5">
-              {(["dark", "light"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setTheme(mode)}
-                  className={
-                    theme === mode
-                      ? "rounded bg-surface-raised px-2.5 py-1 font-medium capitalize text-text-primary"
-                      : "rounded px-2.5 py-1 capitalize text-text-secondary hover:text-text-primary"
-                  }
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
+        <section className="grid grid-cols-1 gap-6 py-8 lg:grid-cols-12">
+          <div className="space-y-1 lg:col-span-4">
+            <h2 className="text-base font-medium text-text-primary">{t.settings.backupTitle}</h2>
+            <p className="text-xs leading-relaxed text-text-secondary">
+              Download a secret-free JSON metadata snapshot (excludes encrypted credentials) or
+              validate and restore a previous export.
+            </p>
           </div>
-
-          <div className="space-y-3 rounded-lg border border-border bg-bg p-3.5 text-xs">
-            <div>
-              <div className="font-medium text-text-primary">{t.settings.backupTitle}</div>
-              <p className="mt-1 text-text-secondary">
-                Download a secret-free JSON metadata snapshot (excludes encrypted credentials) or
-                validate &amp; restore a previous export.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="space-y-4 lg:col-span-8">
+            <div className="flex flex-wrap items-center gap-2.5">
               <a
                 href="/api/settings/backup"
                 download
-                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
+                className="dusk-btn-primary h-9 px-4 text-xs"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export metadata JSON
               </a>
 
-              <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised">
+              <label className="dusk-btn-ghost h-9 cursor-pointer px-4 text-xs">
                 <Upload className="h-3.5 w-3.5" />
                 Validate / Restore JSON
                 <input
@@ -270,10 +280,10 @@ export default function SettingsPage() {
             {backupNotice ? (
               <div
                 className={cn(
-                  "flex items-center gap-2 rounded-md border px-2.5 py-2",
+                  "flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs",
                   backupNotice.kind === "success"
-                    ? "border-success/30 bg-success-subtle text-success"
-                    : "border-danger/30 bg-danger-subtle text-danger",
+                    ? "bg-success-subtle text-success"
+                    : "bg-danger-subtle text-danger",
                 )}
               >
                 {backupNotice.kind === "success" ? (
@@ -286,9 +296,9 @@ export default function SettingsPage() {
             ) : null}
 
             {dryRunCounts && pendingBackupJson ? (
-              <div className="space-y-2 rounded-md border border-border bg-surface p-3">
+              <div className="dusk-well space-y-3 p-4 text-xs">
                 <div className="font-medium text-text-primary">Dry-run summary</div>
-                <div className="grid grid-cols-2 gap-1 tabular-nums text-xs text-text-secondary">
+                <div className="grid grid-cols-2 gap-2 tabular-nums text-text-secondary sm:grid-cols-3">
                   <span>Assets: {dryRunCounts.assets ?? 0}</span>
                   <span>Collections: {dryRunCounts.collections ?? 0}</span>
                   <span>Folders: {dryRunCounts.providerFolders ?? 0}</span>
@@ -303,7 +313,7 @@ export default function SettingsPage() {
                     onClick={() =>
                       restoreMutation.mutate({ payload: pendingBackupJson, dryRun: false })
                     }
-                    className="inline-flex h-7 items-center rounded bg-primary px-2.5 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                    className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
                   >
                     Confirm restore
                   </button>
@@ -313,7 +323,7 @@ export default function SettingsPage() {
                       setPendingBackupJson(null);
                       setDryRunCounts(null);
                     }}
-                    className="h-7 px-2 text-xs text-text-secondary hover:text-text-primary"
+                    className="h-8 px-2 text-xs text-text-secondary hover:text-text-primary"
                   >
                     Cancel
                   </button>
@@ -322,16 +332,19 @@ export default function SettingsPage() {
             ) : null}
           </div>
         </section>
-      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text-primary">{t.dashboard.quotaTitle}</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {quota.meters.map((meter) => (
-            <QuotaMeter key={meter.metric} meter={meter} />
-          ))}
-        </div>
-      </section>
+        <section className="space-y-4 pt-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-base font-medium text-text-primary">{t.dashboard.quotaTitle}</h2>
+            <p className="text-xs text-text-secondary">{t.dashboard.quotaSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-x-10 divide-y divide-border/70 border-t border-border sm:grid-cols-2">
+            {quota.meters.map((meter) => (
+              <QuotaMeter key={meter.metric} meter={meter} />
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

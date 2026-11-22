@@ -18,7 +18,6 @@ import type { UrlValidationResult } from "@/core";
 import { getMessages } from "@/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { BulkImportPanel } from "@/components/import/bulk-import-panel";
 import {
   DestinationSelector,
@@ -128,10 +127,11 @@ export function ImportClient() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader title={t.importPage.title} subtitle={t.importPage.subtitle} />
 
-      <div className="flex flex-wrap gap-2 border-b border-border pb-3">
+      {/* Dusk Ruled Dot-Tabs */}
+      <nav aria-label="Import modes" className="flex flex-wrap items-center gap-6 border-b border-border text-sm">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           if (tab.disabled) {
@@ -139,211 +139,215 @@ export function ImportClient() {
               <span
                 key={tab.key}
                 title={t.importPage.cloudDisabledReason}
-                className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-surface/50 px-3 py-2 text-xs font-medium text-text-secondary opacity-60"
+                className="inline-flex cursor-not-allowed items-center gap-2 border-b-2 border-transparent pb-3 text-text-secondary/50"
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {tab.label}
-                <StatusBadge label="Unavailable" tone="neutral" />
               </span>
             );
           }
 
+          const isActive = activeTab === tab.key;
           return (
             <Link
               key={tab.key}
               href={`/import?tab=${tab.key}`}
               className={cn(
-                "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-                activeTab === tab.key
-                  ? "border-primary/40 bg-primary-subtle text-primary"
-                  : "border-border bg-surface text-text-secondary hover:text-text-primary",
+                "inline-flex items-center gap-2 border-b-2 pb-3 font-medium whitespace-nowrap transition-colors",
+                isActive
+                  ? "border-primary text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary",
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              {isActive ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+              ) : (
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
               {tab.label}
             </Link>
           );
         })}
-      </div>
-
-      <div className="flex items-start gap-2.5 rounded-xl border border-border bg-surface p-4 text-xs text-text-secondary">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-        <p>{t.importPage.rightsNotice}</p>
-      </div>
+      </nav>
 
       {activeTab === "url" ? (
-        <section className="max-w-3xl space-y-4 rounded-xl border border-border bg-surface p-5">
-          <DestinationSelector value={destination} onChange={setDestination} />
-
-          <div className="space-y-1.5">
-            <label htmlFor="direct-url-input" className="block text-xs font-medium text-text-primary">
-              Direct media URL
-            </label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                id="direct-url-input"
-                type="url"
-                value={urlValue}
-                onChange={(e) => {
-                  setUrlValue(e.target.value);
-                  setValidation(null);
-                  setCreatedResult(null);
-                  setErrorMsg(null);
-                }}
-                placeholder={t.importPage.urlPlaceholder}
-                className="h-10 flex-1 rounded-lg border border-border bg-bg px-3 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => validateMutation.mutate()}
-                disabled={!urlValue.trim() || validateMutation.isPending}
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 text-xs font-medium text-text-primary hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {validateMutation.isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : null}
-                {t.importPage.validateButton}
-              </button>
-            </div>
-          </div>
-
-          {validation ? (
-            <div
-              className={cn(
-                "space-y-2 rounded-lg border p-3.5 text-xs",
-                validation.valid
-                  ? "border-success/30 bg-success-subtle text-success"
-                  : "border-danger/30 bg-danger-subtle text-danger",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 font-medium">
-                <span className="flex items-center gap-1.5">
-                  {validation.valid ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  ) : (
-                    <XCircle className="h-4 w-4 shrink-0" />
-                  )}
-                  {validation.classification.replace(/_/g, " ")}
-                </span>
-                {validation.contentType ? (
-                  <span className="font-mono">{validation.contentType}</span>
-                ) : null}
-              </div>
-              <p>{validation.reason}</p>
-              {validation.valid ? (
-                <div className="flex flex-wrap gap-4 tabular-nums text-[11px] opacity-90">
-                  <span>
-                    URL: <code className="font-mono">{validation.redactedUrl}</code>
-                  </span>
-                  {validation.contentLength ? (
-                    <span>Size: {(validation.contentLength / 1024 ** 2).toFixed(2)} MiB</span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {validation?.valid ? (
-            <>
-              <div className="space-y-1.5">
-                <label htmlFor="import-title-input" className="block text-xs font-medium text-text-primary">
-                  Title (optional)
-                </label>
-                <input
-                  id="import-title-input"
-                  type="text"
-                  value={titleOverride}
-                  onChange={(e) => setTitleOverride(e.target.value)}
-                  placeholder="Asset title"
-                  className="h-9 w-full rounded-lg border border-border bg-bg px-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
-                />
-              </div>
-
-              <label className="flex items-start gap-2.5 text-xs text-text-secondary">
-                <input
-                  type="checkbox"
-                  checked={rightsConfirmed}
-                  onChange={(e) => setRightsConfirmed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-border bg-bg accent-primary"
-                />
-                <span>
-                  I confirm I own or am authorized to manage this media source (logged to Activity).
-                </span>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-7">
+            <div className="space-y-2">
+              <label htmlFor="direct-url-input" className="block text-sm font-medium text-text-primary">
+                Direct media URL
               </label>
-
-              <div className="flex items-center gap-3 pt-1">
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <input
+                  id="direct-url-input"
+                  type="url"
+                  value={urlValue}
+                  onChange={(e) => {
+                    setUrlValue(e.target.value);
+                    setValidation(null);
+                    setCreatedResult(null);
+                    setErrorMsg(null);
+                  }}
+                  placeholder={t.importPage.urlPlaceholder}
+                  className="h-10 flex-1 rounded-lg border border-border bg-surface px-3.5 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                />
                 <button
                   type="button"
-                  onClick={() => importMutation.mutate()}
-                  disabled={
-                    !rightsConfirmed ||
-                    destination.providerConnectionIds.length === 0 ||
-                    importMutation.isPending
-                  }
-                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => validateMutation.mutate()}
+                  disabled={!urlValue.trim() || validateMutation.isPending}
+                  className="dusk-btn-ghost h-10 px-4 text-xs disabled:opacity-50"
                 >
-                  {importMutation.isPending ? (
+                  {validateMutation.isPending ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : null}
-                  {destination.providerConnectionIds.length > 1
-                    ? `Start import to ${destination.providerConnectionIds.length} providers`
-                    : "Start import job"}
+                  {t.importPage.validateButton}
                 </button>
               </div>
-            </>
-          ) : null}
-
-          {errorMsg ? (
-            <div className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger-subtle p-3 text-xs text-danger">
-              <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{errorMsg}</span>
+              <p className="flex items-start gap-2 pt-1 text-xs text-text-secondary">
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span>{t.importPage.rightsNotice}</span>
+              </p>
             </div>
-          ) : null}
 
-          {createdResult ? (
-            <div className="space-y-2 rounded-lg border border-primary/30 bg-primary-subtle p-4 text-xs text-text-primary">
-              <div className="font-semibold">
-                {createdResult.deduplicated
-                  ? "Existing import job reused (idempotency guard)"
-                  : "Import job created"}
-              </div>
-              <div className="font-mono text-text-secondary">
-                {createdResult.jobs && createdResult.jobs.length > 1
-                  ? `Created ${createdResult.jobs.length} provider jobs for 1 universal asset.`
-                  : `Job ID: ${createdResult.job.id} · Status: ${createdResult.job.status}`}
-              </div>
-              {createdResult.jobs && createdResult.jobs.length > 1 ? (
-                <ul className="space-y-1 font-mono text-[11px] text-text-secondary">
-                  {createdResult.jobs.map((entry) => (
-                    <li key={entry.job.id}>
-                      <Link href={`/jobs/${entry.job.id}`} className="text-primary hover:underline">
-                        {entry.providerKey} ({entry.job.id.slice(0, 8)})
-                      </Link>
-                      {": "}
-                      {entry.error ? `error: ${entry.error}` : entry.job.status}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Link
-                  href={`/jobs/${createdResult.job.id}`}
-                  className="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground hover:bg-primary-hover"
-                >
-                  Track job
-                </Link>
-                {createdResult.assetId ? (
-                  <Link
-                    href={`/library/${createdResult.assetId}`}
-                    className="rounded-md border border-border bg-surface px-3 py-1.5 font-medium text-text-primary hover:bg-surface-raised"
-                  >
-                    Open asset
-                  </Link>
+            {validation ? (
+              <div
+                className={cn(
+                  "space-y-2 rounded-xl px-4 py-3.5 text-xs",
+                  validation.valid
+                    ? "bg-success-subtle text-success"
+                    : "bg-danger-subtle text-danger",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2 font-medium">
+                  <span className="flex items-center gap-1.5">
+                    {validation.valid ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <XCircle className="h-4 w-4 shrink-0" />
+                    )}
+                    {validation.classification.replace(/_/g, " ")}
+                  </span>
+                  {validation.contentType ? (
+                    <span className="font-mono">{validation.contentType}</span>
+                  ) : null}
+                </div>
+                <p>{validation.reason}</p>
+                {validation.valid ? (
+                  <div className="flex flex-wrap gap-4 tabular-nums text-xs opacity-90">
+                    <span>
+                      URL: <code className="font-mono">{validation.redactedUrl}</code>
+                    </span>
+                    {validation.contentLength ? (
+                      <span>Size: {(validation.contentLength / 1024 ** 2).toFixed(2)} MiB</span>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
-            </div>
-          ) : null}
-        </section>
+            ) : null}
+
+            {validation?.valid ? (
+              <div className="space-y-4 border-t border-border pt-5">
+                <div className="space-y-1.5">
+                  <label htmlFor="import-title-input" className="block text-xs font-medium text-text-primary">
+                    Title (optional)
+                  </label>
+                  <input
+                    id="import-title-input"
+                    type="text"
+                    value={titleOverride}
+                    onChange={(e) => setTitleOverride(e.target.value)}
+                    placeholder="Asset title"
+                    className="h-10 w-full rounded-lg border border-border bg-surface px-3.5 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <label className="flex items-start gap-2.5 text-xs text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={rightsConfirmed}
+                    onChange={(e) => setRightsConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span>
+                    I confirm I own or am authorized to manage this media source (logged to Activity).
+                  </span>
+                </label>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => importMutation.mutate()}
+                    disabled={
+                      !rightsConfirmed ||
+                      destination.providerConnectionIds.length === 0 ||
+                      importMutation.isPending
+                    }
+                    className="dusk-btn-primary h-10 px-5 text-xs disabled:opacity-50"
+                  >
+                    {importMutation.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : null}
+                    {destination.providerConnectionIds.length > 1
+                      ? `Start import to ${destination.providerConnectionIds.length} providers`
+                      : "Start import job"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {errorMsg ? (
+              <div className="flex items-start gap-2 rounded-xl bg-danger-subtle p-3.5 text-xs text-danger">
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            ) : null}
+
+            {createdResult ? (
+              <div className="dusk-well space-y-2.5 p-4 text-xs text-text-primary">
+                <div className="font-semibold">
+                  {createdResult.deduplicated
+                    ? "Existing import job reused (idempotency guard)"
+                    : "Import job created"}
+                </div>
+                <div className="tabular-nums text-text-secondary">
+                  {createdResult.jobs && createdResult.jobs.length > 1
+                    ? `Created ${createdResult.jobs.length} provider jobs for 1 universal asset.`
+                    : `Job ID: ${createdResult.job.id}, Status: ${createdResult.job.status}`}
+                </div>
+                {createdResult.jobs && createdResult.jobs.length > 1 ? (
+                  <ul className="space-y-1 font-mono text-xs text-text-secondary">
+                    {createdResult.jobs.map((entry) => (
+                      <li key={entry.job.id}>
+                        <Link href={`/jobs/${entry.job.id}`} className="text-primary hover:underline">
+                          {entry.providerKey} ({entry.job.id.slice(0, 8)})
+                        </Link>
+                        {": "}
+                        {entry.error ? `error: ${entry.error}` : entry.job.status}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Link href={`/jobs/${createdResult.job.id}`} className="dusk-btn-primary h-8 px-3.5 text-xs">
+                    Track job
+                  </Link>
+                  {createdResult.assetId ? (
+                    <Link
+                      href={`/library/${createdResult.assetId}`}
+                      className="dusk-btn-ghost h-8 px-3.5 text-xs"
+                    >
+                      Open asset
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="lg:col-span-5">
+            <DestinationSelector value={destination} onChange={setDestination} />
+          </div>
+        </div>
       ) : null}
 
       {activeTab === "file" ? (

@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Check,
   CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
   Loader2,
+  Minus,
   RefreshCw,
   ShieldCheck,
   Trash2,
@@ -38,7 +40,7 @@ interface ProvidersResponse {
 }
 
 function formatBytes(bytes?: number): string {
-  if (bytes === undefined) return "—";
+  if (bytes === undefined) return "None";
   if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GiB`;
   if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MiB`;
   if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
@@ -62,7 +64,7 @@ export function ProvidersClient() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title={t.providers.title}
         subtitle={t.providers.subtitle}
@@ -84,25 +86,25 @@ export function ProvidersClient() {
       />
 
       {isLoading ? (
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+        <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading provider adapters…
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-danger/40 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Failed to load providers."}
         </div>
       ) : null}
 
       {data ? (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="space-y-8">
           {(data.adapters ?? []).map((adapter) => {
             const connection =
               (data.connections ?? []).find((c) => c.providerKey === adapter.key) ?? null;
             return (
-              <ProviderAdapterCard
+              <ProviderAdapterPlate
                 key={adapter.key}
                 adapter={adapter}
                 connection={connection}
@@ -119,7 +121,7 @@ export function ProvidersClient() {
   );
 }
 
-function ProviderAdapterCard({
+function ProviderAdapterPlate({
   adapter,
   connection,
   onChanged,
@@ -230,272 +232,284 @@ function ProviderAdapterCard({
     (f) => !f.required || Boolean(values[f.name]?.trim()),
   );
 
-  const capabilityPills = [
-    { label: `Upload: ${cap.uploadInput}`, active: cap.uploadInput !== "none" },
-    { label: `Thumbnails: ${cap.thumbnailInput}`, active: cap.thumbnailInput !== "none" },
-    { label: `Folders: ${cap.folders}`, active: cap.folders !== "none" },
-    { label: `Reconcile: ${cap.reconciliation}`, active: cap.reconciliation !== "none" },
+  const capabilityRows = [
+    { name: "Upload input", detail: cap.uploadInput, active: cap.uploadInput !== "none" },
+    { name: "Thumbnails", detail: cap.thumbnailInput, active: cap.thumbnailInput !== "none" },
+    { name: "Folders", detail: cap.folders, active: cap.folders !== "none" },
+    { name: "Reconciliation", detail: cap.reconciliation, active: cap.reconciliation !== "none" },
     {
-      label: `Delete: ${cap.deleteSemantics.mode}${cap.deleteSemantics.restorable ? " (restorable)" : " (no restore)"}`,
+      name: "Delete semantics",
+      detail: `${cap.deleteSemantics.mode}${cap.deleteSemantics.restorable ? " (restorable)" : " (no restore)"}`,
       active: cap.deleteSemantics.mode !== "none",
     },
-    { label: "Async encoding", active: cap.asyncProcessing },
-    { label: "Removed list", active: cap.removedList },
-    { label: "DMCA flags", active: cap.copyrightFlags },
-    { label: "Stats", active: cap.stats },
-    { label: "Subtitles", active: cap.subtitles },
+    { name: "Async encoding", detail: cap.asyncProcessing ? "Yes" : "No", active: cap.asyncProcessing },
+    { name: "Removed & DMCA lists", detail: cap.removedList && cap.copyrightFlags ? "Both" : "Partial", active: cap.removedList || cap.copyrightFlags },
+    { name: "Stats & Subtitles", detail: `${cap.stats ? "Stats" : "No stats"}, ${cap.subtitles ? "Subtitles" : "No subtitles"}`, active: cap.stats || cap.subtitles },
   ];
 
   return (
-    <section className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-surface p-5">
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-text-primary">{adapter.displayName}</h2>
-              <ProviderBadge providerKey={adapter.key} isDefault={connection?.isDefault} />
-            </div>
-            <div className="tabular-nums text-xs text-text-secondary">
-              <code className="font-mono">{adapter.pinnedApiHost ?? "No external host"}</code>, descriptor v{cap.version}
-            </div>
+    <section className="dusk-plate overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-medium text-text-primary">{adapter.displayName}</h2>
+            <ProviderBadge providerKey={adapter.key} isDefault={connection?.isDefault} />
           </div>
-
-          {connection ? (
-            <StatusBadge
-              label={connection.status === "active" ? "Connected" : "Auth error"}
-              tone={connection.status === "active" ? "success" : "danger"}
-              dot
-            />
-          ) : (
-            <StatusBadge label={t.providers.notConnectedBadge} tone="neutral" />
-          )}
+          <div className="tabular-nums text-xs text-text-secondary">
+            <code className="font-mono">{adapter.pinnedApiHost ?? "No external host"}</code>,
+            descriptor v{cap.version}
+          </div>
         </div>
 
-        {feedback ? (
-          <div
-            role="status"
-            className={
-              feedback.kind === "success"
-                ? "flex items-start gap-2 rounded-lg border border-success/30 bg-success-subtle px-3 py-2 text-xs text-success"
-                : "flex items-start gap-2 rounded-lg border border-danger/30 bg-danger-subtle px-3 py-2 text-xs text-danger"
-            }
-          >
-            {feedback.kind === "success" ? (
-              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            ) : (
-              <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            )}
-            <span>{feedback.text}</span>
-          </div>
-        ) : null}
+        {connection ? (
+          <StatusBadge
+            label={connection.status === "active" ? "Connected" : "Auth error"}
+            tone={connection.status === "active" ? "success" : "danger"}
+            dot
+          />
+        ) : (
+          <StatusBadge label={t.providers.notConnectedBadge} tone="neutral" />
+        )}
+      </div>
 
-        {connection && !rotating ? (
-          <div className="space-y-3 rounded-lg border border-border bg-bg p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-text-primary">
-                <ShieldCheck className="h-4 w-4 text-success" />
-                <span>Encrypted credential stored (key v{connection.keyVersion})</span>
-              </div>
-              <span className="font-mono text-xs text-text-secondary">••••••••••••</span>
-            </div>
-
-            {connection.accountInfo ? (
-              <dl className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-xs sm:grid-cols-3">
-                <div>
-                  <dt className="text-text-secondary">Account</dt>
-                  <dd className="mt-0.5 truncate font-medium text-text-primary">
-                    {connection.accountInfo.accountLabel}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-text-secondary">Videos</dt>
-                  <dd className="mt-0.5 font-mono font-medium text-text-primary">
-                    {connection.accountInfo.videoCount !== undefined
-                      ? new Intl.NumberFormat("en-US").format(connection.accountInfo.videoCount)
-                      : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-text-secondary">Storage used</dt>
-                  <dd className="mt-0.5 font-mono font-medium text-text-primary">
-                    {formatBytes(connection.accountInfo.storageUsedBytes)}
-                  </dd>
-                </div>
-              </dl>
-            ) : null}
-
-            <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setFeedback(null);
-                  testMutation.mutate();
-                }}
-                disabled={testMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
-              >
-                {testMutation.isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                Test connection
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFeedback(null);
-                  setRotating(true);
-                }}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised"
-              >
-                <KeyRound className="h-3.5 w-3.5" />
-                Rotate API key
-              </button>
-
-              {!confirmDisconnect ? (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDisconnect(true)}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md border border-danger/30 bg-danger-subtle px-3 text-xs font-medium text-danger hover:opacity-90"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Disconnect
-                </button>
+      <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-12 lg:divide-x lg:divide-y-0">
+        {/* Left 7 cols: Account telemetry + credential controls */}
+        <div className="space-y-5 p-6 lg:col-span-7">
+          {feedback ? (
+            <div
+              role="status"
+              className={
+                feedback.kind === "success"
+                  ? "flex items-start gap-2 rounded-xl bg-success-subtle px-3.5 py-2.5 text-xs text-success"
+                  : "flex items-start gap-2 rounded-xl bg-danger-subtle px-3.5 py-2.5 text-xs text-danger"
+              }
+            >
+              {feedback.kind === "success" ? (
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => disconnectMutation.mutate()}
-                    disabled={disconnectMutation.isPending}
-                    className="inline-flex h-8 items-center rounded-md bg-danger px-3 text-xs font-medium text-primary-foreground"
-                  >
-                    {disconnectMutation.isPending ? "Disconnecting…" : "Confirm disconnect"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDisconnect(false)}
-                    className="inline-flex h-8 items-center rounded-md border border-border px-2.5 text-xs text-text-secondary hover:text-text-primary"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               )}
+              <span>{feedback.text}</span>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {showForm ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setFeedback(null);
-              saveMutation.mutate();
-            }}
-            className="space-y-3 rounded-lg border border-border bg-bg p-4"
-          >
-            <div className="text-xs font-medium text-text-primary">
-              {rotating ? "Rotate credentials" : "Connect account"}
-            </div>
-            <p className="text-xs text-text-secondary">{t.providers.credentialFormHint}</p>
+          {connection && !rotating ? (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 font-medium text-text-primary">
+                  <ShieldCheck className="h-4 w-4 text-success" />
+                  <span>Encrypted credential stored (key v{connection.keyVersion})</span>
+                </div>
+                <span className="font-mono text-text-secondary">••••••••••••</span>
+              </div>
 
-            <div className="space-y-3 pt-1">
-              {adapter.credentialFields.map((field) => {
-                const isSecret = field.type === "secret";
-                const isVisible = Boolean(revealed[field.name]);
-                return (
-                  <div key={field.name} className="space-y-1">
-                    <label
-                      htmlFor={`${adapter.key}-${field.name}`}
-                      className="block text-xs font-medium text-text-primary"
-                    >
-                      {field.label}
-                      {field.required ? <span className="text-danger"> *</span> : null}
-                    </label>
-                    <div className="relative">
-                      <input
-                        id={`${adapter.key}-${field.name}`}
-                        type={isSecret && !isVisible ? "password" : "text"}
-                        autoComplete="off"
-                        value={values[field.name] ?? ""}
-                        onChange={(e) =>
-                          setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
-                        }
-                        placeholder={field.placeholder ?? ""}
-                        className="h-9 w-full rounded-md border border-border bg-surface pl-3 pr-9 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
-                      />
-                      {isSecret ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setRevealed((prev) => ({ ...prev, [field.name]: !prev[field.name] }))
-                          }
-                          aria-label={isVisible ? "Hide key" : "Show key"}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
-                        >
-                          {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      ) : null}
-                    </div>
-                    {field.helpText ? (
-                      <p className="text-[11px] text-text-secondary">{field.helpText}</p>
-                    ) : null}
+              {connection.accountInfo ? (
+                <dl className="grid grid-cols-2 gap-4 border-y border-border/70 py-4 text-xs sm:grid-cols-3">
+                  <div>
+                    <dt className="text-text-secondary">Account</dt>
+                    <dd className="mt-1 truncate text-sm font-medium text-text-primary">
+                      {connection.accountInfo.accountLabel}
+                    </dd>
                   </div>
-                );
-              })}
-            </div>
+                  <div>
+                    <dt className="text-text-secondary">Videos</dt>
+                    <dd className="mt-1 tabular-nums text-sm font-medium text-text-primary">
+                      {connection.accountInfo.videoCount !== undefined
+                        ? new Intl.NumberFormat("en-US").format(connection.accountInfo.videoCount)
+                        : "None"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-text-secondary">Storage used</dt>
+                    <dd className="mt-1 tabular-nums text-sm font-medium text-text-primary">
+                      {formatBytes(connection.accountInfo.storageUsedBytes)}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
 
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <button
-                type="submit"
-                disabled={!allRequiredFilled || saveMutation.isPending}
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                {rotating ? "Verify & rotate key" : "Verify & save connection"}
-              </button>
-
-              {rotating ? (
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    setRotating(false);
-                    setValues({});
+                    setFeedback(null);
+                    testMutation.mutate();
                   }}
-                  className="inline-flex h-9 items-center rounded-lg border border-border px-3 text-xs text-text-secondary hover:text-text-primary"
+                  disabled={testMutation.isPending}
+                  className="dusk-btn-ghost h-8 px-3.5 text-xs disabled:opacity-50"
                 >
-                  Cancel
+                  {testMutation.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  Test connection
                 </button>
-              ) : null}
-            </div>
-          </form>
-        ) : null}
 
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-text-primary">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedback(null);
+                    setRotating(true);
+                  }}
+                  className="dusk-btn-ghost h-8 px-3.5 text-xs"
+                >
+                  <KeyRound className="h-3.5 w-3.5" />
+                  Rotate API key
+                </button>
+
+                {!confirmDisconnect ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDisconnect(true)}
+                    className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-danger-subtle px-3.5 text-xs font-medium text-danger transition-opacity hover:opacity-90"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Disconnect
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => disconnectMutation.mutate()}
+                      disabled={disconnectMutation.isPending}
+                      className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-danger px-3.5 text-xs font-medium text-primary-foreground"
+                    >
+                      {disconnectMutation.isPending ? "Disconnecting…" : "Confirm disconnect"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDisconnect(false)}
+                      className="h-8 px-2 text-xs text-text-secondary hover:text-text-primary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {showForm ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setFeedback(null);
+                saveMutation.mutate();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <div className="text-sm font-medium text-text-primary">
+                  {rotating ? "Rotate credentials" : "Connect account"}
+                </div>
+                <p className="mt-0.5 text-xs text-text-secondary">
+                  {t.providers.credentialFormHint}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {adapter.credentialFields.map((field) => {
+                  const isSecret = field.type === "secret";
+                  const isVisible = Boolean(revealed[field.name]);
+                  return (
+                    <div key={field.name} className="space-y-1.5">
+                      <label
+                        htmlFor={`${adapter.key}-${field.name}`}
+                        className="block text-xs font-medium text-text-primary"
+                      >
+                        {field.label}
+                        {field.required ? <span className="text-danger"> *</span> : null}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id={`${adapter.key}-${field.name}`}
+                          type={isSecret && !isVisible ? "password" : "text"}
+                          autoComplete="off"
+                          value={values[field.name] ?? ""}
+                          onChange={(e) =>
+                            setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+                          }
+                          placeholder={field.placeholder ?? ""}
+                          className="h-10 w-full rounded-lg border border-border bg-bg pl-3.5 pr-9 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                        />
+                        {isSecret ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRevealed((prev) => ({ ...prev, [field.name]: !prev[field.name] }))
+                            }
+                            aria-label={isVisible ? "Hide key" : "Show key"}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                          >
+                            {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        ) : null}
+                      </div>
+                      {field.helpText ? (
+                        <p className="text-xs text-text-secondary">{field.helpText}</p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={!allRequiredFilled || saveMutation.isPending}
+                  className="dusk-btn-primary h-9 px-4 text-xs disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                  {rotating ? "Verify & rotate key" : "Verify & save connection"}
+                </button>
+
+                {rotating ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRotating(false);
+                      setValues({});
+                    }}
+                    className="dusk-btn-ghost h-9 px-3.5 text-xs"
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+              </div>
+            </form>
+          ) : null}
+        </div>
+
+        {/* Right 5 cols: Quiet ruled capability ledger */}
+        <div className="space-y-3 p-6 lg:col-span-5">
+          <div className="text-xs font-medium text-text-secondary">
             {t.providers.capabilitiesHeading}
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {capabilityPills.map((pill) => (
-              <StatusBadge
-                key={pill.label}
-                label={pill.label}
-                tone={pill.active ? "info" : "neutral"}
-              />
+          <ul className="divide-y divide-border/70 text-xs">
+            {capabilityRows.map((row) => (
+              <li key={row.name} className="flex items-center justify-between gap-3 py-2">
+                <span className="flex items-center gap-2 text-text-primary">
+                  {row.active ? (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                  ) : (
+                    <Minus className="h-3.5 w-3.5 shrink-0 text-text-secondary" aria-hidden="true" />
+                  )}
+                  {row.name}
+                </span>
+                <span className="text-text-secondary">{row.detail}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border pt-3 tabular-nums text-xs text-text-secondary">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-3 tabular-nums text-xs text-text-secondary">
         <span>
           Rate limit: {cap.rateLimit.requestsPerWindow}/{cap.rateLimit.windowSeconds}s
         </span>
         {connection?.lastTestedAt ? (
-          <span>
-            Tested: {new Date(connection.lastTestedAt).toLocaleTimeString()}
-          </span>
+          <span>Tested: {new Date(connection.lastTestedAt).toLocaleTimeString()}</span>
         ) : (
           <span>Not tested yet</span>
         )}

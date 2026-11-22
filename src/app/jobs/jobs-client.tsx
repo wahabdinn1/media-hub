@@ -94,113 +94,123 @@ export function JobsClient() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title={t.jobs.title}
         subtitle={t.jobs.subtitle}
         actions={
-          <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-xs font-medium">
+          <nav aria-label="Jobs views" className="flex items-center gap-5 border-b border-border/60 text-sm">
             <Link
               href="/jobs"
               className={cn(
-                "rounded-md px-3 py-1.5",
+                "inline-flex items-center gap-2 border-b-2 pb-2 font-medium whitespace-nowrap transition-colors",
                 activeTab === "jobs"
-                  ? "bg-surface-raised text-text-primary"
-                  : "text-text-secondary hover:text-text-primary",
+                  ? "border-primary text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary",
               )}
             >
+              {activeTab === "jobs" ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+              ) : null}
               {t.jobs.tabJobs}
             </Link>
             <Link
               href="/jobs?tab=activity"
               className={cn(
-                "rounded-md px-3 py-1.5",
+                "inline-flex items-center gap-2 border-b-2 pb-2 font-medium whitespace-nowrap transition-colors",
                 activeTab === "activity"
-                  ? "bg-surface-raised text-text-primary"
-                  : "text-text-secondary hover:text-text-primary",
+                  ? "border-primary text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary",
               )}
             >
+              {activeTab === "activity" ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+              ) : null}
               {t.jobs.tabActivity}
             </Link>
-          </div>
+          </nav>
         }
       />
 
       {activeTab === "jobs" ? (
-        <div className="flex flex-wrap gap-1.5">
-          {statusFilters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() =>
-                router.push(f.key === "all" ? "/jobs" : `/jobs?status=${encodeURIComponent(f.key)}`)
-              }
-              className={cn(
-                "rounded-lg border px-2.5 py-1.5 text-xs font-medium",
-                statusFilter === f.key
-                  ? "border-primary/40 bg-primary-subtle text-primary"
-                  : "border-border bg-surface text-text-secondary hover:text-text-primary",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-4 border-b border-border pb-3 text-xs">
+          {statusFilters.map((f) => {
+            const active = statusFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() =>
+                  router.push(f.key === "all" ? "/jobs" : `/jobs?status=${encodeURIComponent(f.key)}`)
+                }
+                className={cn(
+                  "inline-flex items-center gap-1.5 font-medium transition-colors",
+                  active ? "text-text-primary" : "text-text-secondary hover:text-text-primary",
+                )}
+              >
+                {active ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                ) : null}
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       ) : null}
 
       {isLoading ? (
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+        <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading…
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Failed to load records."}
         </div>
       ) : null}
 
       {data && data.tab === "jobs" ? (
         data.items.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-4 py-3 font-medium">Job</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Attempts</th>
-                  <th className="px-4 py-3 font-medium">Error</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Job</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Status</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Attempts</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Error</th>
+                  <th className="py-3 font-medium whitespace-nowrap">Created</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border/70">
                 {data.items.map((job) => (
-                  <tr key={job.id} className="hover:bg-surface-raised/50">
-                    <td className="px-4 py-3">
+                  <tr key={job.id} className="transition-colors hover:bg-surface/60">
+                    <td className="py-3.5 pr-4">
                       <Link href={`/jobs/${job.id}`} className="block">
                         <div className="font-mono text-xs font-medium text-text-primary hover:text-primary">
                           {job.jobType}
                         </div>
-                        <div className="font-mono text-[11px] text-text-secondary">
+                        <div className="font-mono text-xs text-text-secondary">
                           {job.id.slice(0, 12)}
                         </div>
                       </Link>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="py-3.5 pr-4">
                       <StatusBadge
                         label={t.statuses.job[job.status as JobStatus] ?? job.status}
                         tone={toneForJob(job.status)}
                         dot
                       />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                    <td className="py-3.5 pr-4 tabular-nums text-xs text-text-secondary">
                       {job.attempts}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-danger">
-                      {job.errorCode ?? "—"}
+                    <td className="py-3.5 pr-4 font-mono text-xs text-danger">
+                      {job.errorCode ?? "None"}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                    <td className="py-3.5 tabular-nums text-xs text-text-secondary">
                       {new Date(job.createdAt).toLocaleString()}
                     </td>
                   </tr>
@@ -215,29 +225,27 @@ export function JobsClient() {
 
       {data && data.tab === "activity" ? (
         data.items.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-4 py-3 font-medium">Action</th>
-                  <th className="px-4 py-3 font-medium">Entity</th>
-                  <th className="px-4 py-3 font-medium">Actor</th>
-                  <th className="px-4 py-3 font-medium">Time</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Action</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Entity</th>
+                  <th className="py-3 pr-4 font-medium whitespace-nowrap">Actor</th>
+                  <th className="py-3 font-medium whitespace-nowrap">Time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border/70">
                 {data.items.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-surface-raised/50">
-                    <td className="px-4 py-3 font-mono text-xs font-medium text-text-primary">
+                  <tr key={ev.id} className="transition-colors hover:bg-surface/60">
+                    <td className="py-3.5 pr-4 font-mono text-xs font-medium text-text-primary">
                       {ev.action}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-text-secondary">
                       {ev.entityType}:{ev.entityId.slice(0, 8)}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
-                      {ev.actorId}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                    <td className="py-3.5 pr-4 text-xs text-text-secondary">{ev.actorId}</td>
+                    <td className="py-3.5 tabular-nums text-xs text-text-secondary">
                       {new Date(ev.createdAt).toLocaleString()}
                     </td>
                   </tr>

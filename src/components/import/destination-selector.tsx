@@ -85,7 +85,6 @@ export function DestinationSelector({
     return Boolean(adapter && hasCapability(adapter.capabilities, "upload.url"));
   });
 
-  // Auto-select default active provider once connections load
   useEffect(() => {
     if (value.providerConnectionIds.length > 0 || uploadCapableConns.length === 0) return;
     const def = uploadCapableConns.find((c) => c.isDefault) ?? uploadCapableConns[0]!;
@@ -126,24 +125,21 @@ export function DestinationSelector({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-border bg-bg p-4">
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <div className="text-xs font-semibold text-text-primary">
-              Target providers (multi-select)
-            </div>
-            <p className="text-[11px] text-text-secondary">
-              Select one or more active hosts. Multi-provider uploads keep one universal asset in MediaHub with separate tracked jobs per host.
-            </p>
-          </div>
-          <span className="rounded bg-surface-raised px-2 py-0.5 tabular-nums text-xs text-text-secondary">
+    <aside className="dusk-plate space-y-5 p-5">
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-sm font-medium text-text-primary">Target providers</h2>
+          <span className="tabular-nums text-xs text-text-secondary">
             {value.providerConnectionIds.length} selected
           </span>
         </div>
+        <p className="text-xs leading-relaxed text-text-secondary">
+          Choose one or more hosts. Multi-host uploads link to one universal MediaHub asset with
+          separate tracked jobs.
+        </p>
 
         {uploadCapableConns.length === 0 ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning/30 bg-warning-subtle px-3 py-2.5 text-xs text-warning">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-subtle px-3 py-2.5 text-xs text-warning">
             <span>No active provider connection ready for URL import.</span>
             <Link href="/providers" className="inline-flex items-center gap-1 font-medium underline">
               <Plug className="h-3.5 w-3.5" />
@@ -151,7 +147,7 @@ export function DestinationSelector({
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <div className="divide-y divide-border/70 border-y border-border/70">
             {uploadCapableConns.map((conn) => {
               const selected = value.providerConnectionIds.includes(conn.id);
               const adapter = adapterMap.get(conn.providerKey);
@@ -162,15 +158,7 @@ export function DestinationSelector({
               const activeFolder = value.folderByConnectionId[conn.id] ?? null;
 
               return (
-                <div
-                  key={conn.id}
-                  className={cn(
-                    "space-y-2.5 rounded-lg border p-3 transition-colors",
-                    selected
-                      ? "border-primary/50 bg-primary-subtle/40"
-                      : "border-border bg-surface hover:border-border-strong",
-                  )}
-                >
+                <div key={conn.id} className="space-y-3 py-3">
                   <button
                     type="button"
                     role="checkbox"
@@ -178,45 +166,43 @@ export function DestinationSelector({
                     onClick={() => toggleProvider(conn.id)}
                     className="flex w-full items-center justify-between gap-2 text-left"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <span
                         className={cn(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                           selected
                             ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-bg",
+                            : "border-border-strong bg-transparent",
                         )}
                       >
                         {selected ? <Check className="h-3 w-3" /> : null}
                       </span>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <ProviderBadge providerKey={conn.providerKey} isDefault={conn.isDefault} />
-                        </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <ProviderBadge providerKey={conn.providerKey} isDefault={conn.isDefault} />
                         {conn.accountInfo?.accountLabel ? (
-                          <div className="mt-0.5 font-mono text-[11px] text-text-secondary">
+                          <span className="font-mono text-xs text-text-secondary">
                             {conn.accountInfo.accountLabel}
-                          </div>
+                          </span>
                         ) : null}
                       </div>
                     </div>
                   </button>
 
                   {selected && supportsFolders ? (
-                    <div className="space-y-1.5 border-t border-border/70 pt-2">
-                      <div className="flex items-center gap-1 text-[11px] text-text-secondary">
-                        <Folder className="h-3 w-3" />
-                        Provider folder:
+                    <div className="space-y-1.5 pl-6">
+                      <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                        <Folder className="h-3 w-3" aria-hidden="true" />
+                        <span>Folder</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         <button
                           type="button"
                           onClick={() => selectFolder(conn.id, null)}
                           className={cn(
-                            "rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                            "rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors",
                             activeFolder === null
-                              ? "border-primary/50 bg-primary text-primary-foreground"
-                              : "border-border bg-bg text-text-secondary hover:text-text-primary",
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-surface-raised/80 text-text-secondary hover:text-text-primary",
                           )}
                         >
                           Root
@@ -227,10 +213,10 @@ export function DestinationSelector({
                             type="button"
                             onClick={() => selectFolder(conn.id, folder.externalId)}
                             className={cn(
-                              "rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                              "rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors",
                               activeFolder === folder.externalId
-                                ? "border-primary/50 bg-primary text-primary-foreground"
-                                : "border-border bg-bg text-text-secondary hover:text-text-primary",
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-surface-raised/80 text-text-secondary hover:text-text-primary",
                             )}
                           >
                             {folder.name}
@@ -246,17 +232,19 @@ export function DestinationSelector({
         )}
       </div>
 
-      <div className="space-y-2 border-t border-border pt-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">
-            <Layers className="h-3.5 w-3.5 text-primary" />
-            Add to MediaHub collections (multi-select, optional)
+      <div className="space-y-2.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-sm font-medium text-text-primary">
+            <Layers className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <span>Collections</span>
           </div>
           {value.collectionIds.length > 0 ? (
-            <span className="rounded bg-primary-subtle px-2 py-0.5 tabular-nums text-xs text-primary">
+            <span className="tabular-nums text-xs text-primary">
               {value.collectionIds.length} selected
             </span>
-          ) : null}
+          ) : (
+            <span className="text-xs text-text-secondary">Optional</span>
+          )}
         </div>
 
         {collections.length > 0 ? (
@@ -271,31 +259,22 @@ export function DestinationSelector({
                   aria-checked={selected}
                   onClick={() => toggleCollection(col.id)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors",
                     selected
-                      ? "border-primary/50 bg-primary-subtle text-primary"
-                      : "border-border bg-surface text-text-secondary hover:text-text-primary",
+                      ? "bg-primary-subtle text-primary"
+                      : "bg-surface-raised/70 text-text-secondary hover:text-text-primary",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "flex h-3.5 w-3.5 items-center justify-center rounded border",
-                      selected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-bg",
-                    )}
-                  >
-                    {selected ? <Check className="h-2.5 w-2.5" /> : null}
-                  </span>
+                  {selected ? <Check className="h-3 w-3" aria-hidden="true" /> : null}
                   <span>{col.name}</span>
-                  <span className="font-mono text-[11px] opacity-70">({col.assetCount})</span>
+                  <span className="tabular-nums opacity-75">({col.assetCount})</span>
                 </button>
               );
             })}
           </div>
         ) : (
-          <p className="text-[11px] text-text-secondary">
-            No collections created yet. Create one in{" "}
+          <p className="text-xs text-text-secondary">
+            No collections yet. Create one in{" "}
             <Link href="/library" className="text-primary hover:underline">
               Library
             </Link>{" "}
@@ -303,6 +282,6 @@ export function DestinationSelector({
           </p>
         )}
       </div>
-    </div>
+    </aside>
   );
 }

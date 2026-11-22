@@ -128,9 +128,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
   const queryClient = useQueryClient();
 
   const [tab, setTab] = useState<DetailTab>("overview");
-  const [encodingInfo, setEncodingInfo] = useState<{ progressPercent: number; completed: boolean } | null>(
-    null,
-  );
+  const [encodingInfo, setEncodingInfo] = useState<{
+    progressPercent: number;
+    completed: boolean;
+  } | null>(null);
   const [actionNotice, setActionNotice] = useState<{
     kind: "success" | "error";
     text: string;
@@ -380,7 +381,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+      <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading asset…
       </div>
@@ -392,12 +393,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       <div className="space-y-4">
         <Link
           href="/library"
-          className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary"
+          className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           {t.library.title}
         </Link>
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Asset not found."}
         </div>
       </div>
@@ -442,10 +443,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Link
         href="/library"
-        className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary"
+        className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         {t.library.title}
@@ -455,7 +456,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
         title={asset.title}
         subtitle={`MediaHub ID: ${asset.id}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <StatusBadge
               label={t.statuses.asset[asset.canonicalStatus]}
               tone={statusTone(asset.canonicalStatus)}
@@ -466,7 +467,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                 type="button"
                 onClick={() => encodingMutation.mutate()}
                 disabled={encodingMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                className="dusk-btn-ghost h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {encodingMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -484,10 +485,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
         <div
           role="status"
           className={cn(
-            "flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3.5 py-2.5 text-xs",
+            "flex flex-wrap items-center justify-between gap-2 rounded-xl px-4 py-3 text-xs font-medium",
             actionNotice.kind === "success"
-              ? "border-success/30 bg-success-subtle text-success"
-              : "border-danger/30 bg-danger-subtle text-danger",
+              ? "bg-success-subtle text-success"
+              : "bg-danger-subtle text-danger",
           )}
         >
           <span className="inline-flex items-center gap-2">
@@ -499,7 +500,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
             {actionNotice.text}
           </span>
           {actionNotice.linkHref && actionNotice.linkLabel ? (
-            <Link href={actionNotice.linkHref} className="font-medium underline">
+            <Link href={actionNotice.linkHref} className="underline">
               {actionNotice.linkLabel}
             </Link>
           ) : null}
@@ -507,48 +508,60 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {encodingInfo ? (
-        <div className="rounded-xl border border-info/30 bg-info-subtle p-3.5 text-xs text-info">
+        <div className="rounded-xl bg-info-subtle px-4 py-3 text-xs text-info">
           Provider encoding progress:{" "}
-          <span className="font-mono font-semibold">{encodingInfo.progressPercent}%</span>
-          {encodingInfo.completed ? " — Completed and marked active." : " — Still encoding."}
+          <span className="tabular-nums font-semibold">{encodingInfo.progressPercent}%</span>
+          {encodingInfo.completed ? ", completed and marked active." : ", still encoding."}
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-1.5 border-b border-border pb-2">
-        {tabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => setTab(item.key)}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-              tab === item.key
-                ? "bg-primary-subtle text-primary"
-                : "text-text-secondary hover:bg-surface-raised hover:text-text-primary",
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+      {/* Dusk Ruled Dot-Tabs */}
+      <nav aria-label="Asset tabs" className="flex flex-wrap items-center gap-6 border-b border-border text-sm">
+        {tabs.map((item) => {
+          const active = tab === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setTab(item.key)}
+              className={cn(
+                "inline-flex items-center gap-2 border-b-2 pb-3 font-medium whitespace-nowrap transition-colors",
+                active
+                  ? "border-primary text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary",
+              )}
+            >
+              {active ? (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+              ) : null}
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
 
       {tab === "overview" ? (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <div className="overflow-hidden rounded-xl border border-border bg-surface">
-              <div className="flex aspect-video items-center justify-center bg-bg">
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="overflow-hidden rounded-2xl bg-surface lg:col-span-5">
+              <div className="flex aspect-video items-center justify-center">
                 {activeThumb?.sourceUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={activeThumb.sourceUrl} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={activeThumb.sourceUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    fetchPriority="high"
+                  />
                 ) : (
                   <Film className="h-10 w-10 text-text-secondary" />
                 )}
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-surface p-5 lg:col-span-2">
-              <h2 className="text-sm font-semibold text-text-primary">Universal asset metadata</h2>
-              <dl className="mt-4 grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
+            <div className="space-y-4 lg:col-span-7">
+              <h2 className="text-base font-medium text-text-primary">Universal asset metadata</h2>
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 border-t border-border pt-4 text-xs sm:grid-cols-2">
                 <div>
                   <dt className="text-text-secondary">MediaHub Asset ID</dt>
                   <dd className="mt-1 font-mono text-text-primary">{asset.id}</dd>
@@ -561,19 +574,19 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                 </div>
                 <div>
                   <dt className="text-text-secondary">Duration</dt>
-                  <dd className="mt-1 font-mono text-text-primary">
-                    {asset.durationSeconds ? `${asset.durationSeconds}s` : "—"}
+                  <dd className="mt-1 tabular-nums text-text-primary">
+                    {asset.durationSeconds ? `${asset.durationSeconds}s` : "None"}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-text-secondary">File size</dt>
-                  <dd className="mt-1 font-mono text-text-primary">
-                    {asset.sizeBytes ? `${(asset.sizeBytes / 1024 ** 2).toFixed(2)} MiB` : "—"}
+                  <dd className="mt-1 tabular-nums text-text-primary">
+                    {asset.sizeBytes ? `${(asset.sizeBytes / 1024 ** 2).toFixed(2)} MiB` : "None"}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-text-secondary">Registered</dt>
-                  <dd className="mt-1 font-mono text-text-primary">
+                  <dd className="mt-1 tabular-nums text-text-primary">
                     {new Date(asset.createdAt).toLocaleString()}
                   </dd>
                 </div>
@@ -589,246 +602,266 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
             </div>
           </div>
 
-          <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
+          {/* Ruled Operations Workbench — zero card-in-card */}
+          <section className="space-y-6 border-t border-border pt-8">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-text-primary">Asset operations</h2>
+              <h2 className="text-base font-medium text-text-primary">Asset operations</h2>
               {primaryLoc && !primaryLoc.canMutate ? (
-                <span className="rounded-md border border-warning/30 bg-warning-subtle px-2.5 py-1 text-xs text-warning">
+                <span className="rounded-full bg-warning-subtle px-3 py-1 text-xs text-warning">
                   Read-only: {primaryLoc.readOnlyReason}
                 </span>
               ) : null}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-text-primary">
+            <div className="divide-y divide-border/70 border-y border-border">
+              <div className="grid grid-cols-1 gap-3 py-4 lg:grid-cols-12 lg:items-center">
+                <div className="flex items-center gap-2 text-xs font-medium text-text-primary lg:col-span-4">
                   <Pencil className="h-3.5 w-3.5 text-primary" />
                   Rename at provider
                 </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const nextTitle = (renameDraft ?? asset.title).trim();
-                    if (!nextTitle || nextTitle === asset.title) return;
-                    setActionNotice(null);
-                    actionMutation.mutate({ action: "rename", title: nextTitle });
-                  }}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    value={renameDraft ?? asset.title}
-                    onChange={(e) => setRenameDraft(e.target.value)}
-                    disabled={!canRename || actionMutation.isPending}
-                    className="h-8 flex-1 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={
-                      !canRename ||
-                      actionMutation.isPending ||
-                      !(renameDraft ?? asset.title).trim() ||
-                      (renameDraft ?? asset.title).trim() === asset.title
-                    }
-                    className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                <div className="space-y-1.5 lg:col-span-8">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const nextTitle = (renameDraft ?? asset.title).trim();
+                      if (!nextTitle || nextTitle === asset.title) return;
+                      setActionNotice(null);
+                      actionMutation.mutate({ action: "rename", title: nextTitle });
+                    }}
+                    className="flex flex-wrap items-center gap-2"
                   >
-                    Rename
-                  </button>
-                </form>
-                {!canRename ? (
-                  <p className="text-[11px] text-text-secondary">
-                    Unavailable: provider does not declare rename support or connection is read-only.
-                  </p>
-                ) : null}
+                    <input
+                      type="text"
+                      value={renameDraft ?? asset.title}
+                      onChange={(e) => setRenameDraft(e.target.value)}
+                      disabled={!canRename || actionMutation.isPending}
+                      className="h-9 flex-1 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary focus:border-primary focus:outline-none disabled:opacity-50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={
+                        !canRename ||
+                        actionMutation.isPending ||
+                        !(renameDraft ?? asset.title).trim() ||
+                        (renameDraft ?? asset.title).trim() === asset.title
+                      }
+                      className="dusk-btn-primary h-9 px-4 text-xs disabled:opacity-50"
+                    >
+                      Rename
+                    </button>
+                  </form>
+                  {!canRename ? (
+                    <p className="text-xs text-text-secondary">
+                      Unavailable: provider does not declare rename support or connection is
+                      read-only.
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-text-primary">
+              <div className="grid grid-cols-1 gap-3 py-4 lg:grid-cols-12 lg:items-center">
+                <div className="flex items-center gap-2 text-xs font-medium text-text-primary lg:col-span-4">
                   <FolderInput className="h-3.5 w-3.5 text-primary" />
                   Move to provider folder
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    value={moveFolderId === "__unchanged__" ? currentFolderExternalId : moveFolderId}
-                    onChange={(e) => setMoveFolderId(e.target.value)}
-                    disabled={!canMove || actionMutation.isPending}
-                    className="h-8 flex-1 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none disabled:opacity-50"
-                  >
-                    <option value="">Provider Root (no folder)</option>
-                    {matchingFolders.map((f) => (
-                      <option key={f.id} value={f.externalId}>
-                        {f.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    disabled={!canMove || actionMutation.isPending || moveFolderId === "__unchanged__"}
-                    onClick={() => {
-                      setActionNotice(null);
-                      actionMutation.mutate({
-                        action: "move",
-                        folderExternalId: moveFolderId ? moveFolderId : null,
-                      });
-                    }}
-                    className="inline-flex h-8 items-center rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
-                  >
-                    Move
-                  </button>
-                </div>
-                {!canMove ? (
-                  <p className="text-[11px] text-text-secondary">
-                    Unavailable: provider does not declare folder support or connection is read-only.
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-text-primary">
-                  <Layers className="h-3.5 w-3.5 text-primary" />
-                  MediaHub collections
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {memberCollections.length > 0 ? (
-                    memberCollections.map((col) => (
-                      <span
-                        key={col.id}
-                        className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary-subtle px-2 py-1 text-xs text-primary"
-                      >
-                        {col.name}
-                        <button
-                          type="button"
-                          aria-label={`Remove from ${col.name}`}
-                          onClick={() => removeCollectionMutation.mutate(col.id)}
-                          className="hover:opacity-75"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-text-secondary">Not in any collection yet.</span>
-                  )}
-                </div>
-                {availableCollections.length > 0 ? (
-                  <div className="flex items-center gap-2 pt-1">
+                <div className="space-y-1.5 lg:col-span-8">
+                  <div className="flex flex-wrap items-center gap-2">
                     <select
-                      value={addCollectionId}
-                      onChange={(e) => setAddCollectionId(e.target.value)}
-                      className="h-8 flex-1 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
+                      value={
+                        moveFolderId === "__unchanged__" ? currentFolderExternalId : moveFolderId
+                      }
+                      onChange={(e) => setMoveFolderId(e.target.value)}
+                      disabled={!canMove || actionMutation.isPending}
+                      className="h-9 flex-1 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary focus:border-primary focus:outline-none disabled:opacity-50"
                     >
-                      <option value="">Add to collection…</option>
-                      {availableCollections.map((col) => (
-                        <option key={col.id} value={col.id}>
-                          {col.name}
+                      <option value="">Provider Root (no folder)</option>
+                      {matchingFolders.map((f) => (
+                        <option key={f.id} value={f.externalId}>
+                          {f.name}
                         </option>
                       ))}
                     </select>
                     <button
                       type="button"
-                      disabled={!addCollectionId || addCollectionMutation.isPending}
-                      onClick={() => addCollectionMutation.mutate(addCollectionId)}
-                      className="inline-flex h-8 items-center rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                      disabled={
+                        !canMove || actionMutation.isPending || moveFolderId === "__unchanged__"
+                      }
+                      onClick={() => {
+                        setActionNotice(null);
+                        actionMutation.mutate({
+                          action: "move",
+                          folderExternalId: moveFolderId ? moveFolderId : null,
+                        });
+                      }}
+                      className="dusk-btn-ghost h-9 px-4 text-xs disabled:opacity-50"
                     >
-                      Add
+                      Move
                     </button>
                   </div>
-                ) : null}
+                  {!canMove ? (
+                    <p className="text-xs text-text-secondary">
+                      Unavailable: provider does not declare folder support or connection is
+                      read-only.
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-                <div className="text-xs font-medium text-text-primary">Clone &amp; Delete</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={!canClone || actionMutation.isPending}
-                    onClick={() => {
-                      setActionNotice(null);
-                      actionMutation.mutate({ action: "clone" });
-                    }}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Clone at provider
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowDeletePanel((v) => !v)}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-danger/40 bg-danger-subtle px-3 text-xs font-medium text-danger hover:opacity-90"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete options
-                  </button>
+              <div className="grid grid-cols-1 gap-3 py-4 lg:grid-cols-12 lg:items-start">
+                <div className="flex items-center gap-2 pt-1 text-xs font-medium text-text-primary lg:col-span-4">
+                  <Layers className="h-3.5 w-3.5 text-primary" />
+                  MediaHub collections
                 </div>
-
-                {showDeletePanel ? (
-                  <div className="mt-2 space-y-3 rounded-lg border border-danger/30 bg-surface p-3 text-xs">
-                    <div className="flex items-start gap-2 text-danger">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <div className="space-y-1">
-                        <p className="font-semibold">Confirm delete scope</p>
-                        {caps && !caps.deleteSemantics.restorable ? (
-                          <p>
-                            {primaryLoc?.providerDisplayName ?? "This provider"} performs a{" "}
-                            <span className="font-mono">{caps.deleteSemantics.mode}</span> delete
-                            and offers <strong>NO restore endpoint</strong>. Deleting at the
-                            provider cannot be undone through MediaHub.
-                          </p>
-                        ) : (
-                          <p>Choose whether to remove only the MediaHub catalog entry or delete remotely.</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <label className="flex items-center gap-2 text-text-secondary">
-                      <input
-                        type="checkbox"
-                        checked={deleteLocalAlso}
-                        onChange={(e) => setDeleteLocalAlso(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-border accent-danger"
-                      />
-                      Also hide local MediaHub record after provider delete
-                    </label>
-
-                    <div className="flex flex-wrap items-center gap-2">
+                <div className="space-y-2.5 lg:col-span-8">
+                  <div className="flex flex-wrap gap-1.5">
+                    {memberCollections.length > 0 ? (
+                      memberCollections.map((col) => (
+                        <span
+                          key={col.id}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary-subtle px-3 py-1 text-xs font-medium text-primary"
+                        >
+                          {col.name}
+                          <button
+                            type="button"
+                            aria-label={`Remove from ${col.name}`}
+                            onClick={() => removeCollectionMutation.mutate(col.id)}
+                            className="hover:opacity-75"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-text-secondary">Not in any collection yet.</span>
+                    )}
+                  </div>
+                  {availableCollections.length > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={addCollectionId}
+                        onChange={(e) => setAddCollectionId(e.target.value)}
+                        className="h-9 flex-1 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
+                      >
+                        <option value="">Add to collection…</option>
+                        {availableCollections.map((col) => (
+                          <option key={col.id} value={col.id}>
+                            {col.name}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         type="button"
-                        disabled={actionMutation.isPending}
-                        onClick={() => {
-                          setActionNotice(null);
-                          actionMutation.mutate({ action: "soft_delete_local" });
-                        }}
-                        className="inline-flex h-8 items-center whitespace-nowrap rounded-md border border-border bg-bg px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                        disabled={!addCollectionId || addCollectionMutation.isPending}
+                        onClick={() => addCollectionMutation.mutate(addCollectionId)}
+                        className="dusk-btn-ghost h-9 px-4 text-xs disabled:opacity-50"
                       >
-                        Remove locally
+                        Add
                       </button>
-                      {canDeleteRemote ? (
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 py-4 lg:grid-cols-12 lg:items-start">
+                <div className="pt-1 text-xs font-medium text-text-primary lg:col-span-4">
+                  Clone &amp; Delete
+                </div>
+                <div className="space-y-3 lg:col-span-8">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      disabled={!canClone || actionMutation.isPending}
+                      onClick={() => {
+                        setActionNotice(null);
+                        actionMutation.mutate({ action: "clone" });
+                      }}
+                      className="dusk-btn-ghost h-9 px-4 text-xs disabled:opacity-50"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Clone at provider
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeletePanel((v) => !v)}
+                      className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full bg-danger-subtle px-4 text-xs font-medium text-danger transition-opacity hover:opacity-90"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete options
+                    </button>
+                  </div>
+
+                  {showDeletePanel ? (
+                    <div className="dusk-well space-y-3 p-4 text-xs">
+                      <div className="flex items-start gap-2 text-danger">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <div className="space-y-1">
+                          <p className="font-semibold">Confirm delete scope</p>
+                          {caps && !caps.deleteSemantics.restorable ? (
+                            <p>
+                              {primaryLoc?.providerDisplayName ?? "This provider"} performs a{" "}
+                              <span className="font-mono">{caps.deleteSemantics.mode}</span> delete
+                              and offers <strong>NO restore endpoint</strong>. Deleting at the
+                              provider cannot be undone through MediaHub.
+                            </p>
+                          ) : (
+                            <p>
+                              Choose whether to remove only the MediaHub catalog entry or delete
+                              remotely.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-2 text-text-secondary">
+                        <input
+                          type="checkbox"
+                          checked={deleteLocalAlso}
+                          onChange={(e) => setDeleteLocalAlso(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-border accent-danger"
+                        />
+                        Also hide local MediaHub record after provider delete
+                      </label>
+
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           disabled={actionMutation.isPending}
                           onClick={() => {
                             setActionNotice(null);
-                            actionMutation.mutate({
-                              action: "delete_provider",
-                              confirmProviderDelete: true,
-                              deleteLocalAlso,
-                            });
+                            actionMutation.mutate({ action: "soft_delete_local" });
                           }}
-                          className="inline-flex h-8 items-center rounded-md bg-danger px-3 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                          className="dusk-btn-ghost h-8 px-3.5 text-xs disabled:opacity-50"
                         >
-                          Confirm delete at {primaryLoc?.providerDisplayName ?? "provider"}
+                          Remove locally
                         </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => setShowDeletePanel(false)}
-                        className="h-8 px-2 text-xs text-text-secondary hover:text-text-primary"
-                      >
-                        Cancel
-                      </button>
+                        {canDeleteRemote ? (
+                          <button
+                            type="button"
+                            disabled={actionMutation.isPending}
+                            onClick={() => {
+                              setActionNotice(null);
+                              actionMutation.mutate({
+                                action: "delete_provider",
+                                confirmProviderDelete: true,
+                                deleteLocalAlso,
+                              });
+                            }}
+                            className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-danger px-4 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                          >
+                            Confirm delete at {primaryLoc?.providerDisplayName ?? "provider"}
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => setShowDeletePanel(false)}
+                          className="h-8 px-2 text-xs text-text-secondary hover:text-text-primary"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>
@@ -836,12 +869,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "provider" ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {locations.map((loc) => (
-            <section
-              key={loc.id}
-              className="space-y-3 rounded-xl border border-border bg-surface p-5"
-            >
+            <section key={loc.id} className="dusk-plate space-y-4 p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <ProviderBadge providerKey={loc.providerKey} isDefault={loc.isDefaultConnection} />
@@ -852,7 +882,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     href={loc.externalUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                   >
                     Open at provider
                     <ExternalLink className="h-3.5 w-3.5" />
@@ -860,24 +890,24 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                 ) : null}
               </div>
 
-              <dl className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+              <dl className="grid grid-cols-1 gap-4 border-y border-border/70 py-3 text-xs sm:grid-cols-2">
                 <div>
                   <dt className="text-text-secondary">External identifier</dt>
                   <dd className="mt-0.5 font-mono text-text-primary">{loc.externalId}</dd>
                 </div>
                 <div>
                   <dt className="text-text-secondary">Last synced</dt>
-                  <dd className="mt-0.5 font-mono text-text-primary">
-                    {loc.lastSeenAt ? new Date(loc.lastSeenAt).toLocaleString() : "—"}
+                  <dd className="mt-0.5 tabular-nums text-text-primary">
+                    {loc.lastSeenAt ? new Date(loc.lastSeenAt).toLocaleString() : "None"}
                   </dd>
                 </div>
               </dl>
 
-              <div className="rounded-lg border border-border bg-bg p-3">
-                <div className="text-[11px] font-medium text-text-secondary">
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-text-secondary">
                   Provider-specific metadata
                 </div>
-                <pre className="mt-1.5 overflow-x-auto font-mono text-xs text-text-primary">
+                <pre className="overflow-x-auto rounded-xl bg-bg p-3.5 font-mono text-xs text-text-primary">
                   {JSON.stringify(loc.providerMetadata, null, 2)}
                 </pre>
               </div>
@@ -887,9 +917,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "thumbnail" ? (
-        <div className="space-y-4">
-          <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold text-text-primary">
+        <div className="space-y-8">
+          <section className="space-y-3 border-b border-border pb-6">
+            <h2 className="text-base font-medium text-text-primary">
               Apply custom thumbnail (Direct Image URL)
             </h2>
             {canThumbUrl ? (
@@ -900,25 +930,25 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                   setActionNotice(null);
                   applyThumbnailMutation.mutate(thumbUrlInput.trim());
                 }}
-                className="space-y-2.5"
+                className="max-w-2xl space-y-2.5"
               >
                 <p className="text-xs text-text-secondary">
                   Provide an authorized direct HTTPS image URL (JPEG, PNG, GIF, or WebP, max 5 MiB).
                   The provider&rsquo;s native thumbnail is retained as a fallback.
                 </p>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <input
                     type="url"
                     value={thumbUrlInput}
                     onChange={(e) => setThumbUrlInput(e.target.value)}
                     placeholder="https://cdn.example.com/posters/video-thumb.webp"
                     required
-                    className="h-9 flex-1 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                    className="h-10 flex-1 rounded-lg border border-border bg-surface px-3.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
                   />
                   <button
                     type="submit"
                     disabled={!thumbUrlInput.trim() || applyThumbnailMutation.isPending}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                    className="dusk-btn-primary h-10 px-4 text-xs disabled:opacity-50"
                   >
                     {applyThumbnailMutation.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -939,13 +969,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
           </section>
 
           {thumbnails.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {thumbnails.map((th) => (
-                <div
-                  key={th.id}
-                  className="overflow-hidden rounded-xl border border-border bg-surface"
-                >
-                  <div className="flex aspect-video items-center justify-center bg-bg">
+                <div key={th.id} className="space-y-2.5">
+                  <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-surface">
                     {th.sourceUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={th.sourceUrl} alt="" className="h-full w-full object-cover" />
@@ -953,7 +980,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                       <ImageIcon className="h-6 w-6 text-text-secondary" />
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-2 p-3 text-xs">
+                  <div className="flex items-center justify-between gap-2 text-xs">
                     <span className="capitalize text-text-primary">
                       {th.sourceType.replace("_", " ")} thumbnail
                     </span>
@@ -967,7 +994,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                           setActionNotice(null);
                           switchThumbnailMutation.mutate(th.id);
                         }}
-                        className="rounded-md border border-border bg-bg px-2 py-1 text-[11px] font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                        className="dusk-btn-ghost h-7 px-3 text-xs disabled:opacity-50"
                       >
                         {th.sourceType === "native" ? "Restore native" : "Set active"}
                       </button>
@@ -987,9 +1014,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "subtitles" ? (
-        <div className="space-y-4">
-          <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold text-text-primary">
+        <div className="space-y-8">
+          <section className="space-y-3 border-b border-border pb-6">
+            <h2 className="text-base font-medium text-text-primary">
               Attach subtitle track (SRT / VTT)
             </h2>
             {canSubtitles ? (
@@ -1004,10 +1031,11 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     subtitleUrl: subUrlInput.trim(),
                   });
                 }}
-                className="space-y-2.5"
+                className="max-w-3xl space-y-2.5"
               >
                 <p className="text-xs text-text-secondary">
-                  Provide an authorized direct HTTPS subtitle file URL (.srt or .vtt, max 2 MiB) and language code.
+                  Provide an authorized direct HTTPS subtitle file URL (.srt or .vtt, max 2 MiB) and
+                  language code.
                 </p>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-6">
                   <input
@@ -1016,12 +1044,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     onChange={(e) => setSubLangInput(e.target.value)}
                     placeholder="en / id"
                     required
-                    className="h-9 rounded-lg border border-border bg-bg px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                    className="h-10 rounded-lg border border-border bg-surface px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
                   />
                   <select
                     value={subFormatInput}
                     onChange={(e) => setSubFormatInput(e.target.value as "srt" | "vtt")}
-                    className="h-9 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                    className="h-10 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
                   >
                     <option value="vtt">VTT</option>
                     <option value="srt">SRT</option>
@@ -1032,12 +1060,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     onChange={(e) => setSubUrlInput(e.target.value)}
                     placeholder="https://cdn.example.com/subs/video-en.vtt"
                     required
-                    className="h-9 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none sm:col-span-3"
+                    className="h-10 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none sm:col-span-3"
                   />
                   <button
                     type="submit"
                     disabled={!subUrlInput.trim() || attachSubtitleMutation.isPending}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50 sm:col-span-1"
+                    className="dusk-btn-primary h-10 px-4 text-xs disabled:opacity-50 sm:col-span-1"
                   >
                     {attachSubtitleMutation.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1058,16 +1086,19 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
           </section>
 
           {assetSubtitles.length > 0 ? (
-            <div className="rounded-xl border border-border bg-surface p-4">
-              <h3 className="text-xs font-semibold text-text-primary">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-text-primary">
                 Attached subtitles ({assetSubtitles.length})
               </h3>
-              <ul className="mt-2 divide-y divide-border">
+              <ul className="divide-y divide-border border-y border-border">
                 {assetSubtitles.map((sub) => (
-                  <li key={sub.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs">
-                    <div className="flex items-center gap-2">
+                  <li
+                    key={sub.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-3 text-xs"
+                  >
+                    <div className="flex items-center gap-2.5">
                       <StatusBadge label={sub.language} tone="info" />
-                      <span className="rounded bg-surface-raised px-1.5 py-0.5 text-xs text-text-secondary">
+                      <span className="rounded-full bg-surface-raised px-2 py-0.5 text-xs text-text-secondary">
                         {sub.format}
                       </span>
                       <a
@@ -1079,7 +1110,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                         {sub.sourceUrl}
                       </a>
                     </div>
-                    <span className="font-mono text-text-secondary">
+                    <span className="tabular-nums text-text-secondary">
                       {new Date(sub.createdAt).toLocaleString()}
                     </span>
                   </li>
@@ -1097,13 +1128,13 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "history" ? (
-        <div className="space-y-4">
+        <div className="space-y-8">
           {relatedJobs.length > 0 ? (
-            <div className="rounded-xl border border-border bg-surface p-4">
-              <h3 className="text-xs font-semibold text-text-primary">Related jobs</h3>
-              <ul className="mt-2 divide-y divide-border">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-text-primary">Related jobs</h3>
+              <ul className="divide-y divide-border border-y border-border">
                 {relatedJobs.map((j) => (
-                  <li key={j.id} className="flex items-center justify-between py-2 text-xs">
+                  <li key={j.id} className="flex items-center justify-between py-3 text-xs">
                     <Link href={`/jobs/${j.id}`} className="font-mono text-primary hover:underline">
                       {j.jobType} ({j.id.slice(0, 8)})
                     </Link>
@@ -1115,13 +1146,13 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
           ) : null}
 
           {history.length > 0 ? (
-            <div className="rounded-xl border border-border bg-surface p-4">
-              <h3 className="text-xs font-semibold text-text-primary">Audit events</h3>
-              <ul className="mt-2 divide-y divide-border">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-text-primary">Audit events</h3>
+              <ul className="divide-y divide-border border-y border-border">
                 {history.map((ev) => (
-                  <li key={ev.id} className="flex items-center justify-between py-2 text-xs">
+                  <li key={ev.id} className="flex items-center justify-between py-3 text-xs">
                     <span className="font-mono text-text-primary">{ev.action}</span>
-                    <span className="font-mono text-text-secondary">
+                    <span className="tabular-nums text-text-secondary">
                       {new Date(ev.createdAt).toLocaleString()}
                     </span>
                   </li>

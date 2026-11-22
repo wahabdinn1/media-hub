@@ -90,7 +90,7 @@ function assetStatusTone(status: CanonicalAssetStatus): BadgeTone {
 }
 
 function formatDuration(seconds: number | null): string {
-  if (!seconds || seconds <= 0) return "—";
+  if (!seconds || seconds <= 0) return "None";
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -377,12 +377,12 @@ export function LibraryClient() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <PageHeader
         title={t.library.title}
         subtitle={t.library.subtitle}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={() => {
@@ -390,7 +390,7 @@ export function LibraryClient() {
                 syncMutation.mutate();
               }}
               disabled={syncMutation.isPending}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+              className="dusk-btn-ghost h-9 px-3.5 text-xs disabled:opacity-50"
             >
               {syncMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -400,10 +400,7 @@ export function LibraryClient() {
               {syncMutation.isPending ? "Syncing…" : "Sync from provider"}
             </button>
 
-            <Link
-              href="/import?tab=url"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
-            >
+            <Link href="/import?tab=url" className="dusk-btn-primary h-9 px-4 text-xs">
               <Upload className="h-3.5 w-3.5" />
               {t.library.ctaImportUrl}
             </Link>
@@ -415,10 +412,10 @@ export function LibraryClient() {
         <div
           role="status"
           className={cn(
-            "flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs",
+            "flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium",
             syncNotice.kind === "success"
-              ? "border-success/30 bg-success-subtle text-success"
-              : "border-danger/30 bg-danger-subtle text-danger",
+              ? "bg-success-subtle text-success"
+              : "bg-danger-subtle text-danger",
           )}
         >
           {syncNotice.kind === "success" ? (
@@ -430,19 +427,20 @@ export function LibraryClient() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
+      {/* Dusk Organization Well: borderless tinted well with internal hairline divider */}
+      <section className="dusk-well grid grid-cols-1 divide-y divide-border/70 p-5 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+        <div className="space-y-3 pb-4 lg:pb-0 lg:pr-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-semibold text-text-primary">MediaHub collections</h2>
-              <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
-                {collectionsList.length}
+              <h2 className="text-sm font-medium text-text-primary">MediaHub collections</h2>
+              <span className="tabular-nums text-xs text-text-secondary">
+                ({collectionsList.length})
               </span>
             </div>
             <button
               type="button"
               onClick={() => setShowNewCollection((v) => !v)}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               <Plus className="h-3.5 w-3.5" />
               New collection
@@ -457,19 +455,19 @@ export function LibraryClient() {
                   createCollectionMutation.mutate(newCollectionName.trim());
                 }
               }}
-              className="flex flex-wrap items-center gap-2 pt-1"
+              className="flex flex-wrap items-center gap-2"
             >
               <input
                 type="text"
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection name..."
-                className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                placeholder="Collection name…"
+                className="h-8 w-56 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!newCollectionName.trim() || createCollectionMutation.isPending}
-                className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {createCollectionMutation.isPending ? "Creating…" : "Create"}
               </button>
@@ -477,15 +475,15 @@ export function LibraryClient() {
           ) : null}
 
           {collectionsList.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => updateQuery({ collectionId: "" })}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium",
+                  "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                   !collectionParam
-                    ? "border-primary/40 bg-primary-subtle text-primary"
-                    : "border-border bg-bg text-text-secondary hover:text-text-primary",
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface-raised/80 text-text-secondary hover:text-text-primary",
                 )}
               >
                 All assets
@@ -494,10 +492,10 @@ export function LibraryClient() {
                 <div
                   key={col.id}
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs",
                     collectionParam === col.id
-                      ? "border-primary/40 bg-primary-subtle text-primary"
-                      : "border-border bg-bg text-text-primary",
+                      ? "bg-primary-subtle text-primary"
+                      : "bg-surface-raised/80 text-text-primary",
                   )}
                 >
                   <button
@@ -507,12 +505,12 @@ export function LibraryClient() {
                     }
                     className="inline-flex items-center gap-1.5 font-medium"
                   >
-                    <Layers className="h-3.5 w-3.5" />
+                    <Layers className="h-3 w-3" />
                     <span>{col.name}</span>
-                    <span className="font-mono text-[11px] opacity-75">({col.assetCount})</span>
+                    <span className="tabular-nums opacity-75">({col.assetCount})</span>
                   </button>
                   {confirmDeleteColId === col.id ? (
-                    <span className="inline-flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1 pl-1">
                       <button
                         type="button"
                         onClick={() => {
@@ -520,14 +518,14 @@ export function LibraryClient() {
                           deleteCollectionMutation.mutate(col.id);
                         }}
                         disabled={deleteCollectionMutation.isPending}
-                        className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
+                        className="rounded-full bg-danger px-2 py-0.5 text-xs font-medium text-primary-foreground"
                       >
                         Delete
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteColId(null)}
-                        className="text-[11px] text-text-secondary hover:text-text-primary"
+                        className="text-xs text-text-secondary hover:text-text-primary"
                       >
                         Cancel
                       </button>
@@ -539,7 +537,7 @@ export function LibraryClient() {
                       onClick={() => setConfirmDeleteColId(col.id)}
                       className="text-text-secondary hover:text-danger"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   )}
                 </div>
@@ -547,23 +545,22 @@ export function LibraryClient() {
             </div>
           ) : (
             <p className="text-xs text-text-secondary">
-              Organize videos across providers with MediaHub collections without changing provider folders.
+              Organize videos across providers with MediaHub collections without changing provider
+              folders.
             </p>
           )}
-        </section>
+        </div>
 
-        <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
+        <div className="space-y-3 pt-4 lg:pl-6 lg:pt-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-semibold text-text-primary">Provider folders</h2>
-              <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
-                {folders.length}
-              </span>
+              <h2 className="text-sm font-medium text-text-primary">Provider folders</h2>
+              <span className="tabular-nums text-xs text-text-secondary">({folders.length})</span>
             </div>
             <button
               type="button"
               onClick={() => setShowNewFolder((v) => !v)}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               <FolderPlus className="h-3.5 w-3.5" />
               New folder
@@ -578,19 +575,19 @@ export function LibraryClient() {
                   createFolderMutation.mutate(newFolderName.trim());
                 }
               }}
-              className="flex flex-wrap items-center gap-2 pt-1"
+              className="flex flex-wrap items-center gap-2"
             >
               <input
                 type="text"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Folder name..."
-                className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                placeholder="Folder name…"
+                className="h-8 w-56 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!newFolderName.trim() || createFolderMutation.isPending}
-                className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {createFolderMutation.isPending ? "Creating…" : "Create"}
               </button>
@@ -598,11 +595,11 @@ export function LibraryClient() {
           ) : null}
 
           {folders.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-1.5">
               {folders.map((folder) => (
                 <div
                   key={folder.id}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5 text-xs"
+                  className="inline-flex items-center gap-2 rounded-full bg-surface-raised/80 px-3 py-1 text-xs"
                 >
                   <Folder className="h-3.5 w-3.5 text-primary" />
                   <span className="font-medium text-text-primary">{folder.name}</span>
@@ -616,14 +613,14 @@ export function LibraryClient() {
                           deleteFolderMutation.mutate(folder.id);
                         }}
                         disabled={deleteFolderMutation.isPending}
-                        className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
+                        className="rounded-full bg-danger px-2 py-0.5 text-xs font-medium text-primary-foreground"
                       >
                         Delete
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteFolderId(null)}
-                        className="text-[11px] text-text-secondary hover:text-text-primary"
+                        className="text-xs text-text-secondary hover:text-text-primary"
                       >
                         Cancel
                       </button>
@@ -635,7 +632,7 @@ export function LibraryClient() {
                       onClick={() => setConfirmDeleteFolderId(folder.id)}
                       className="text-text-secondary hover:text-danger"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   )}
                 </div>
@@ -643,20 +640,21 @@ export function LibraryClient() {
             </div>
           ) : (
             <p className="text-xs text-text-secondary">
-              No provider folders synced yet. Click &ldquo;Sync from provider&rdquo; to load folders from your connected account.
+              No provider folders synced yet. Click &ldquo;Sync from provider&rdquo; to load folders
+              from your connected account.
             </p>
           )}
-        </section>
-      </div>
+        </div>
+      </section>
 
       {selectedIds.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary-subtle px-4 py-2.5 text-xs">
-          <div className="flex items-center gap-2 font-medium text-primary">
-            <span>{selectedIds.length} selected</span>
+        <div className="dusk-plate flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs">
+          <div className="flex items-center gap-2.5 font-medium text-primary">
+            <span className="tabular-nums">{selectedIds.length} selected</span>
             <button
               type="button"
               onClick={() => setSelectedIds([])}
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-text-secondary hover:text-text-primary"
+              className="inline-flex items-center gap-1 text-text-secondary hover:text-text-primary"
             >
               <X className="h-3.5 w-3.5" />
               Clear
@@ -666,7 +664,7 @@ export function LibraryClient() {
             <select
               value={targetCollectionId}
               onChange={(e) => setTargetCollectionId(e.target.value)}
-              className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
+              className="h-8 rounded-full border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
             >
               <option value="">Choose collection…</option>
               {collectionsList.map((col) => (
@@ -684,7 +682,7 @@ export function LibraryClient() {
                   assetIds: selectedIds,
                 })
               }
-              className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+              className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
             >
               {bulkAddToCollectionMutation.isPending ? "Adding…" : "Add to collection"}
             </button>
@@ -692,26 +690,31 @@ export function LibraryClient() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => updateQuery({ status: f.key })}
-              className={cn(
-                "rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
-                statusParam === f.key
-                  ? "border-primary/40 bg-primary-subtle text-primary"
-                  : "border-border bg-surface text-text-secondary hover:text-text-primary",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* Filter & View Toolbar: Dusk ruled tabs + borderless search */}
+      <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4 text-xs">
+          {filters.map((f) => {
+            const active = statusParam === f.key;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => updateQuery({ status: f.key })}
+                className={cn(
+                  "inline-flex items-center gap-1.5 font-medium transition-colors",
+                  active ? "text-text-primary" : "text-text-secondary hover:text-text-primary",
+                )}
+              >
+                {active ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                ) : null}
+                {f.label}
+              </button>
+            );
+          })}
           {activeCollection ? (
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary-subtle px-2.5 py-1.5 text-xs font-medium text-primary">
-              <Layers className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-subtle px-2.5 py-0.5 font-medium text-primary">
+              <Layers className="h-3 w-3" />
               {activeCollection.name}
               <button
                 type="button"
@@ -733,23 +736,23 @@ export function LibraryClient() {
             }}
             className="relative flex-1 sm:w-56"
           >
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-secondary" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-secondary" />
             <input
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Filter title..."
-              className="h-8 w-full rounded-lg border border-border bg-surface pl-8 pr-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+              placeholder="Filter title…"
+              className="h-8 w-full rounded-full border border-border bg-surface pl-8 pr-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
             />
           </form>
 
-          <div className="inline-flex rounded-lg border border-border bg-surface p-0.5">
+          <div className="inline-flex items-center gap-1 rounded-full bg-surface p-0.5">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
               aria-label={t.library.viewGrid}
               className={cn(
-                "rounded-md p-1.5",
+                "rounded-full p-1.5 transition-colors",
                 viewMode === "grid"
                   ? "bg-surface-raised text-text-primary"
                   : "text-text-secondary hover:text-text-primary",
@@ -762,7 +765,7 @@ export function LibraryClient() {
               onClick={() => setViewMode("table")}
               aria-label={t.library.viewTable}
               className={cn(
-                "rounded-md p-1.5",
+                "rounded-full p-1.5 transition-colors",
                 viewMode === "table"
                   ? "bg-surface-raised text-text-primary"
                   : "text-text-secondary hover:text-text-primary",
@@ -775,14 +778,14 @@ export function LibraryClient() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+        <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading catalog…
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Failed to load catalog."}
         </div>
       ) : null}
@@ -801,7 +804,7 @@ export function LibraryClient() {
               <button
                 type="button"
                 onClick={() => updateQuery({ collectionId: "" })}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3.5 py-2 text-xs font-medium text-text-primary hover:bg-surface-raised"
+                className="dusk-btn-ghost h-9 px-4 text-xs"
               >
                 Show all assets
               </button>
@@ -811,15 +814,12 @@ export function LibraryClient() {
                   type="button"
                   onClick={() => syncMutation.mutate()}
                   disabled={syncMutation.isPending}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
+                  className="dusk-btn-primary h-9 px-4 text-xs"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Sync from provider
                 </button>
-                <Link
-                  href="/providers"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3.5 py-2 text-xs font-medium text-text-primary hover:bg-surface-raised"
-                >
+                <Link href="/providers" className="dusk-btn-ghost h-9 px-4 text-xs">
                   <Plug className="h-3.5 w-3.5" />
                   {t.library.ctaConnectProvider}
                 </Link>
@@ -829,12 +829,13 @@ export function LibraryClient() {
         />
       ) : null}
 
+      {/* Full-width borderless hairline table (craft.md § 9) */}
       {data && data.items.length > 0 && viewMode === "table" ? (
-        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-text-secondary">
-                <th className="w-10 px-4 py-3">
+                <th className="w-9 py-3 pr-3">
                   <input
                     type="checkbox"
                     aria-label="Select all visible assets"
@@ -849,17 +850,17 @@ export function LibraryClient() {
                     className="h-3.5 w-3.5 rounded border-border accent-primary"
                   />
                 </th>
-                <th className="px-4 py-3 font-medium">Asset</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Provider</th>
-                <th className="px-4 py-3 font-medium">Duration</th>
-                <th className="px-4 py-3 font-medium">Updated</th>
+                <th className="py-3 pr-4 font-medium whitespace-nowrap">Asset</th>
+                <th className="py-3 pr-4 font-medium whitespace-nowrap">Status</th>
+                <th className="py-3 pr-4 font-medium whitespace-nowrap">Provider</th>
+                <th className="py-3 pr-4 font-medium whitespace-nowrap">Duration</th>
+                <th className="py-3 font-medium whitespace-nowrap">Updated</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/70">
               {data.items.map((item, idx) => (
-                <tr key={item.id} className="hover:bg-surface-raised/50">
-                  <td className="px-4 py-3">
+                <tr key={item.id} className="transition-colors hover:bg-surface/60">
+                  <td className="py-3.5 pr-3">
                     <input
                       type="checkbox"
                       aria-label={`Select ${item.title}`}
@@ -868,9 +869,9 @@ export function LibraryClient() {
                       className="h-3.5 w-3.5 rounded border-border accent-primary"
                     />
                   </td>
-                  <td className="px-4 py-3">
-                    <Link href={`/library/${item.id}`} className="flex items-center gap-3">
-                      <div className="flex h-10 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-bg">
+                  <td className="py-3.5 pr-4">
+                    <Link href={`/library/${item.id}`} className="flex items-center gap-3.5">
+                      <div className="flex h-10 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-raised">
                         {item.thumbnailUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -888,21 +889,21 @@ export function LibraryClient() {
                         <div className="truncate font-medium text-text-primary hover:text-primary">
                           {item.title}
                         </div>
-                        <div className="font-mono text-[11px] text-text-secondary">
+                        <div className="font-mono text-xs text-text-secondary">
                           {item.id.slice(0, 8)}
                         </div>
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="py-3.5 pr-4">
                     <StatusBadge
                       label={t.statuses.asset[item.canonicalStatus]}
                       tone={assetStatusTone(item.canonicalStatus)}
                       dot
                     />
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
+                  <td className="py-3.5 pr-4">
+                    <div className="flex flex-wrap gap-1.5">
                       {item.providers.map((p) => (
                         <ProviderBadge
                           key={`${p.connectionId}-${p.externalId}`}
@@ -911,10 +912,10 @@ export function LibraryClient() {
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                  <td className="py-3.5 pr-4 tabular-nums text-xs text-text-secondary">
                     {formatDuration(item.durationSeconds)}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                  <td className="py-3.5 tabular-nums text-xs text-text-secondary">
                     {new Date(item.updatedAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -925,14 +926,10 @@ export function LibraryClient() {
       ) : null}
 
       {data && data.items.length > 0 && viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {data.items.map((item, idx) => (
-            <Link
-              key={item.id}
-              href={`/library/${item.id}`}
-              className="group overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-border-strong"
-            >
-              <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-border bg-bg">
+            <Link key={item.id} href={`/library/${item.id}`} className="group block space-y-2.5">
+              <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-surface">
                 {item.thumbnailUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -946,12 +943,12 @@ export function LibraryClient() {
                   <Film className="h-7 w-7 text-text-secondary" />
                 )}
                 {item.durationSeconds ? (
-                  <span className="absolute bottom-2 right-2 rounded bg-bg/90 px-1.5 py-0.5 font-mono text-[11px] text-text-primary">
+                  <span className="absolute bottom-2 right-2 rounded-full bg-bg/90 px-2 py-0.5 tabular-nums text-xs text-text-primary">
                     {formatDuration(item.durationSeconds)}
                   </span>
                 ) : null}
               </div>
-              <div className="space-y-2 p-3.5">
+              <div className="space-y-1.5">
                 <div className="line-clamp-2 text-sm font-medium text-text-primary group-hover:text-primary">
                   {item.title}
                 </div>
@@ -973,7 +970,7 @@ export function LibraryClient() {
 
       {data && data.total > data.pageSize ? (
         <div className="flex items-center justify-between border-t border-border pt-4 text-xs text-text-secondary">
-          <span className="font-mono">
+          <span className="tabular-nums">
             Page {data.page} of {totalPages} ({data.total} assets)
           </span>
           <div className="flex items-center gap-2">
@@ -981,7 +978,7 @@ export function LibraryClient() {
               type="button"
               disabled={data.page <= 1}
               onClick={() => updateQuery({ page: data.page - 1 })}
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-text-primary hover:bg-surface-raised disabled:opacity-40"
+              className="dusk-btn-ghost h-8 px-3 text-xs disabled:opacity-40"
             >
               Previous
             </button>
@@ -989,7 +986,7 @@ export function LibraryClient() {
               type="button"
               disabled={data.page >= totalPages}
               onClick={() => updateQuery({ page: data.page + 1 })}
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-text-primary hover:bg-surface-raised disabled:opacity-40"
+              className="dusk-btn-ghost h-8 px-3 text-xs disabled:opacity-40"
             >
               Next
             </button>

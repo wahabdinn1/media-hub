@@ -33,7 +33,7 @@ interface AnalyticsResponse {
 }
 
 function formatDurationMs(ms: number | null): string {
-  if (ms === null) return "—";
+  if (ms === null) return "None";
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
@@ -55,7 +55,7 @@ export function AnalyticsPanel() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+      <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading analytics…
       </div>
@@ -83,22 +83,22 @@ export function AnalyticsPanel() {
   const { jobAnalytics, providerStats } = data;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-text-secondary">
+    <div className="space-y-10">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-text-secondary">
           Aggregated MediaHub job telemetry and capability-gated provider stats.
         </p>
-        <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-xs">
+        <div className="flex items-center gap-4 border-b border-border text-xs">
           {([7, 14, 30] as const).map((d) => (
             <button
               key={d}
               type="button"
               onClick={() => setDays(d)}
               className={cn(
-                "rounded-md px-2.5 py-1 tabular-nums font-medium active:translate-y-px",
+                "border-b-2 pb-1.5 tabular-nums font-medium active:translate-y-px transition-colors",
                 days === d
-                  ? "bg-surface-raised text-text-primary"
-                  : "text-text-secondary hover:text-text-primary",
+                  ? "border-primary text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary",
               )}
             >
               {d}d
@@ -107,93 +107,104 @@ export function AnalyticsPanel() {
         </div>
       </div>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <div className="text-xs text-text-secondary">Jobs ({days}d)</div>
-          <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
+      {/* Dusk Ruled Tally — zero boxed stat cards */}
+      <section className="grid grid-cols-1 divide-y divide-border border-b border-border pb-8 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+        <div className="py-3 pr-6 sm:py-2 lg:py-0">
+          <div className="text-xs font-medium text-text-secondary">Jobs ({days}d)</div>
+          <div className="mt-2 font-display text-3xl font-medium tabular-nums text-text-primary">
             {jobAnalytics.totalJobs}
           </div>
-          <div className="mt-1 tabular-nums text-xs text-text-secondary">
+          <div className="mt-1.5 tabular-nums text-xs text-text-secondary">
             {jobAnalytics.completedJobs} ok, {jobAnalytics.failedJobs} failed
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <div className="text-xs text-text-secondary">Job success rate</div>
-          <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
+        <div className="py-3 sm:py-2 lg:px-6 lg:py-0">
+          <div className="text-xs font-medium text-text-secondary">Job success rate</div>
+          <div className="mt-2 font-display text-3xl font-medium tabular-nums text-text-primary">
             {jobAnalytics.successRatePercent}%
           </div>
-          <div className="mt-1 tabular-nums text-xs text-text-secondary">
+          <div className="mt-1.5 tabular-nums text-xs text-text-secondary">
             {jobAnalytics.unknownJobs} unclear outcome
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <div className="text-xs text-text-secondary">Median job duration</div>
-          <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
+        <div className="py-3 sm:py-2 lg:px-6 lg:py-0">
+          <div className="text-xs font-medium text-text-secondary">Median job duration</div>
+          <div className="mt-2 font-display text-3xl font-medium tabular-nums text-text-primary">
             {formatDurationMs(jobAnalytics.medianDurationMs)}
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <div className="text-xs text-text-secondary">p95 job duration</div>
-          <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
+        <div className="py-3 sm:py-2 lg:pl-6 lg:py-0">
+          <div className="text-xs font-medium text-text-secondary">p95 job duration</div>
+          <div className="mt-2 font-display text-3xl font-medium tabular-nums text-text-primary">
             {formatDurationMs(jobAnalytics.p95DurationMs)}
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="space-y-3 rounded-xl border border-border bg-surface p-5">
+      <section className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="dusk-plate space-y-4 p-6">
           <div>
-            <h2 className="text-sm font-semibold text-text-primary">Daily job outcomes</h2>
-            <p className="text-xs text-text-secondary">
-              Completed, failed, and in-progress/other jobs over the last {days} days.
+            <h2 className="text-base font-medium text-text-primary">Daily job outcomes</h2>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Completed, failed, and waiting jobs across the last {days} days.
             </p>
           </div>
           {jobAnalytics.byDay.length > 0 ? (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobAnalytics.byDay}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                   <XAxis
                     dataKey="day"
                     tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
                     tickFormatter={(v: string) => v.slice(5)}
+                    axisLine={false}
+                    tickLine={false}
                   />
                   <YAxis
                     allowDecimals={false}
                     tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
+                    axisLine={false}
+                    tickLine={false}
                   />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--color-surface)",
                       border: "1px solid var(--color-border)",
-                      borderRadius: "8px",
+                      borderRadius: "10px",
                       fontSize: "12px",
                     }}
                   />
-                  <Bar dataKey="completed" stackId="a" fill="var(--color-success)" name="Completed" />
+                  <Bar
+                    dataKey="completed"
+                    stackId="a"
+                    fill="var(--color-primary)"
+                    radius={[3, 3, 0, 0]}
+                    name="Completed"
+                  />
                   <Bar dataKey="failed" stackId="a" fill="var(--color-danger)" name="Failed" />
                   <Bar dataKey="other" stackId="a" fill="var(--color-warning)" name="Other" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-xs text-text-secondary">
+            <div className="flex h-48 items-center justify-center text-xs text-text-secondary">
               No job runs recorded in the selected {days}-day window.
             </div>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-border bg-surface p-5">
+        <div className="dusk-plate space-y-4 p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="flex items-center gap-1.5 text-sm font-semibold text-text-primary">
-                <TrendingUp className="h-4 w-4 text-primary" />
+              <h2 className="flex items-center gap-1.5 text-base font-medium text-text-primary">
+                <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
                 Provider stats
               </h2>
-              <p className="text-xs text-text-secondary">
+              <p className="mt-0.5 text-xs text-text-secondary">
                 Capability-gated daily views reported by your active default provider.
               </p>
             </div>
@@ -203,11 +214,12 @@ export function AnalyticsPanel() {
           </div>
 
           {!providerStats.supported ? (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border px-4 text-center text-xs text-text-secondary">
-              Your active provider does not declare a stats API capability, or no default provider is connected.
+            <div className="flex h-48 items-center justify-center px-4 text-center text-xs text-text-secondary">
+              Your active provider does not declare a stats API capability, or no default provider is
+              connected.
             </div>
           ) : providerStats.error ? (
-            <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-subtle p-3.5 text-xs text-warning">
+            <div className="flex items-start gap-2 rounded-lg bg-warning-subtle p-3.5 text-xs text-warning">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>Could not fetch provider stats: {providerStats.error}</span>
             </div>
@@ -215,29 +227,33 @@ export function AnalyticsPanel() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={providerStats.points}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                   <XAxis
                     dataKey="day"
                     tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
                     tickFormatter={(v: string) => v.slice(5)}
+                    axisLine={false}
+                    tickLine={false}
                   />
                   <YAxis
                     allowDecimals={false}
                     tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
+                    axisLine={false}
+                    tickLine={false}
                   />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--color-surface)",
                       border: "1px solid var(--color-border)",
-                      borderRadius: "8px",
+                      borderRadius: "10px",
                       fontSize: "12px",
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="views"
-                    stroke="var(--color-primary)"
-                    fill="var(--color-primary-subtle)"
+                    stroke="var(--color-warning)"
+                    fill="var(--color-warning-subtle)"
                     strokeWidth={2}
                     name="Views"
                   />
@@ -245,31 +261,32 @@ export function AnalyticsPanel() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-xs text-text-secondary">
-              {providerStats.providerDisplayName ?? "Provider"} returned no daily stats points for the last {days} days.
+            <div className="flex h-48 items-center justify-center text-xs text-text-secondary">
+              {providerStats.providerDisplayName ?? "Provider"} returned no daily stats points for
+              the last {days} days.
             </div>
           )}
         </div>
       </section>
 
       {jobAnalytics.byType.length > 0 ? (
-        <section className="rounded-xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-semibold text-text-primary">Breakdown by job type</h2>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs">
+        <section className="space-y-3 border-t border-border pt-8">
+          <h2 className="text-base font-medium text-text-primary">Breakdown by job type</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-text-secondary">
-                  <th className="py-2 pr-4 font-medium">Job type</th>
-                  <th className="py-2 pr-4 font-medium">Total</th>
-                  <th className="py-2 font-medium">Failed</th>
+                <tr className="border-b border-border text-xs text-text-secondary">
+                  <th className="py-2.5 pr-4 font-medium whitespace-nowrap">Job type</th>
+                  <th className="py-2.5 pr-4 font-medium whitespace-nowrap">Total</th>
+                  <th className="py-2.5 font-medium whitespace-nowrap">Failed</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border font-mono">
+              <tbody className="divide-y divide-border/70 tabular-nums">
                 {jobAnalytics.byType.map((row) => (
                   <tr key={row.jobType}>
-                    <td className="py-2 pr-4 text-text-primary">{row.jobType}</td>
-                    <td className="py-2 pr-4 text-text-secondary">{row.count}</td>
-                    <td className="py-2 text-text-secondary">{row.failed}</td>
+                    <td className="py-3 pr-4 font-mono text-xs text-text-primary">{row.jobType}</td>
+                    <td className="py-3 pr-4 text-xs text-text-secondary">{row.count}</td>
+                    <td className="py-3 text-xs text-text-secondary">{row.failed}</td>
                   </tr>
                 ))}
               </tbody>

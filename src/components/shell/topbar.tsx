@@ -79,15 +79,15 @@ export function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface/95 px-3 backdrop-blur sm:px-5">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-bg/85 px-4 backdrop-blur-md sm:px-8">
       <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-1.5 text-sm lg:flex">
         {breadcrumbs.map((crumb, index) => (
           <div key={crumb.href} className="flex items-center gap-1.5">
-            {index > 0 ? <span className="text-text-secondary">/</span> : null}
+            {index > 0 ? <span className="text-border-strong">/</span> : null}
             <Link
               href={crumb.href}
               className={cn(
-                "truncate",
+                "truncate whitespace-nowrap transition-colors",
                 index === breadcrumbs.length - 1
                   ? "font-medium text-text-primary"
                   : "text-text-secondary hover:text-text-primary",
@@ -99,10 +99,10 @@ export function Topbar() {
         ))}
       </nav>
 
-      <div className="flex flex-1 items-center gap-2 lg:max-w-md lg:flex-initial">
+      <div className="flex flex-1 items-center gap-2 lg:max-w-sm lg:flex-initial">
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary"
+            className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-secondary"
             aria-hidden="true"
           />
           <input
@@ -111,19 +111,38 @@ export function Topbar() {
             onChange={(e) => setGlobalSearch(e.target.value)}
             placeholder={t.topbar.searchPlaceholder}
             aria-label={t.topbar.searchPlaceholder}
-            className="h-9 w-full rounded-lg border border-border bg-bg pl-8 pr-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+            className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-3.5 text-sm text-text-primary placeholder:text-text-secondary transition-colors focus:border-border-strong focus:outline-none"
           />
         </form>
       </div>
 
       <div className="flex items-center gap-2">
+        <Link
+          href="/jobs"
+          className={cn(
+            "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-medium tabular-nums transition-colors",
+            activeJobs > 0
+              ? "border-warning/40 bg-warning-subtle text-warning"
+              : "border-border bg-surface text-text-secondary hover:border-border-strong hover:text-text-primary",
+          )}
+          title="Job Center"
+        >
+          <Activity className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="hidden sm:inline">
+            {activeJobs > 0
+              ? formatMessage(t.topbar.jobsActive, { count: activeJobs })
+              : t.topbar.jobsIdle}
+          </span>
+          <span className="sm:hidden">{activeJobs}</span>
+        </Link>
+
         <div className="relative" ref={menuRef}>
           <button
             type="button"
             onClick={() => setNewMenuOpen((o) => !o)}
             aria-expanded={newMenuOpen}
             aria-haspopup="menu"
-            className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3.5 text-sm font-medium text-primary-foreground shadow-[var(--shadow-btn-primary)] transition-colors hover:bg-primary-hover"
+            className="dusk-btn-primary h-9 px-3.5 text-xs sm:text-sm"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t.topbar.newAction}</span>
@@ -133,22 +152,22 @@ export function Topbar() {
           {newMenuOpen ? (
             <div
               role="menu"
-              className="absolute right-0 mt-1.5 w-48 rounded-lg border border-border bg-surface-raised p-1 shadow-lg"
+              className="dusk-plate absolute right-0 mt-2 w-48 p-1.5"
             >
               <Link
                 role="menuitem"
                 href="/import?tab=url"
                 onClick={() => setNewMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-2.5 py-2 text-sm text-text-primary hover:bg-surface"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-raised"
               >
-                <Link2 className="h-4 w-4 text-text-secondary" />
+                <Link2 className="h-4 w-4 text-primary" />
                 {t.topbar.newImportUrl}
               </Link>
               <Link
                 role="menuitem"
                 href="/import?tab=file"
                 onClick={() => setNewMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-2.5 py-2 text-sm text-text-primary hover:bg-surface"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-raised"
               >
                 <Upload className="h-4 w-4 text-text-secondary" />
                 {t.topbar.newUploadFile}
@@ -157,7 +176,7 @@ export function Topbar() {
                 role="menuitem"
                 href="/import?tab=bulk"
                 onClick={() => setNewMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-2.5 py-2 text-sm text-text-primary hover:bg-surface"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-raised"
               >
                 <FileSpreadsheet className="h-4 w-4 text-text-secondary" />
                 {t.topbar.newBulkImport}
@@ -166,28 +185,11 @@ export function Topbar() {
           ) : null}
         </div>
 
-        <Link
-          href="/jobs"
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg px-2.5 text-xs font-medium text-text-secondary hover:border-border-strong hover:text-text-primary"
-          title="Job Center"
-        >
-          <Activity
-            className={cn("h-3.5 w-3.5", activeJobs > 0 ? "text-primary" : "text-text-secondary")}
-            aria-hidden="true"
-          />
-          <span className="hidden font-mono sm:inline">
-            {activeJobs > 0
-              ? formatMessage(t.topbar.jobsActive, { count: activeJobs })
-              : t.topbar.jobsIdle}
-          </span>
-          <span className="font-mono sm:hidden">{activeJobs}</span>
-        </Link>
-
         <button
           type="button"
           onClick={toggleTheme}
           aria-label={theme === "dark" ? t.topbar.themeToLight : t.topbar.themeToDark}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg text-text-secondary hover:border-border-strong hover:text-text-primary"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text-primary"
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>

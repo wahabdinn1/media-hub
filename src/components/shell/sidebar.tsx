@@ -42,20 +42,21 @@ export function Sidebar() {
     <aside
       aria-label="Primary navigation"
       className={cn(
-        "hidden shrink-0 flex-col border-r border-border bg-surface md:flex",
-        collapsed ? "w-16" : "w-60",
+        "hidden shrink-0 flex-col border-r border-border bg-surface/70 md:flex",
+        collapsed ? "w-16" : "w-56",
       )}
     >
-      <div className="flex h-14 items-center justify-between border-b border-border px-3">
+      <div className="flex h-14 items-center justify-between border-b border-border px-3.5">
         <Link
           href="/dashboard"
-          className="flex min-w-0 items-center gap-2.5 rounded-md px-1 py-1 text-text-primary"
+          aria-label={t.app.name}
+          className="flex min-w-0 items-center gap-2.5 text-text-primary"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold tracking-tight text-primary-foreground shadow-[var(--shadow-btn-primary)]">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-[var(--shadow-btn-primary)]">
             MH
           </span>
           {!collapsed ? (
-            <span className="truncate text-sm font-semibold tracking-tight">
+            <span className="truncate font-display text-[15px] font-medium tracking-tight">
               {t.app.name}
             </span>
           ) : null}
@@ -65,17 +66,16 @@ export function Sidebar() {
           type="button"
           onClick={toggleSidebar}
           aria-label={collapsed ? t.nav.expandSidebar : t.nav.collapseSidebar}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-secondary hover:bg-surface-raised hover:text-text-primary"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-0.5 px-2.5 py-4">
         {visibleItems.map((item) => {
           const Icon = NAV_ICONS[item.key];
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
@@ -83,21 +83,28 @@ export function Sidebar() {
               href={item.href}
               title={collapsed ? t.nav[item.key] : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm whitespace-nowrap transition-colors",
                 isActive
-                  ? "bg-primary-subtle text-primary"
-                  : "text-text-secondary hover:bg-surface-raised hover:text-text-primary",
+                  ? "bg-primary-subtle font-medium text-text-primary"
+                  : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",
                 collapsed && "justify-center px-0",
               )}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+              <Icon
+                className={cn(
+                  "h-[17px] w-[17px] shrink-0",
+                  isActive ? "text-primary" : "text-text-secondary group-hover:text-text-primary",
+                )}
+                aria-hidden="true"
+              />
               {!collapsed ? (
                 <span className="flex flex-1 items-center justify-between truncate">
                   <span>{t.nav[item.key]}</span>
-                  {item.phaseBadge ? (
-                    <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
-                      {item.phaseBadge}
-                    </span>
+                  {isActive ? (
+                    <span
+                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                      aria-hidden="true"
+                    />
                   ) : null}
                 </span>
               ) : null}
@@ -107,7 +114,7 @@ export function Sidebar() {
       </nav>
 
       {!collapsed ? (
-        <div className="border-t border-border px-3 py-3 text-xs text-text-secondary">
+        <div className="border-t border-border px-4 py-3.5 text-xs text-text-secondary">
           <div className="font-medium text-text-primary">MediaHub v1.0</div>
           <div className="mt-0.5 truncate">Zero-Cost Hybrid Tier</div>
         </div>

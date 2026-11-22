@@ -3,12 +3,12 @@ import { cn } from "@/lib/cn";
 export type BadgeTone = "neutral" | "primary" | "success" | "warning" | "danger" | "info";
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  neutral: "border-border bg-surface-raised text-text-secondary",
-  primary: "border-primary/30 bg-primary-subtle text-primary",
-  success: "border-success/30 bg-success-subtle text-success",
-  warning: "border-warning/30 bg-warning-subtle text-warning",
-  danger: "border-danger/30 bg-danger-subtle text-danger",
-  info: "border-info/30 bg-info-subtle text-info",
+  neutral: "bg-surface-raised/80 text-text-secondary",
+  primary: "bg-primary-subtle text-primary",
+  success: "bg-success-subtle text-success",
+  warning: "bg-warning-subtle text-warning",
+  danger: "bg-danger-subtle text-danger",
+  info: "bg-info-subtle text-info",
 };
 
 export function StatusBadge({
@@ -25,7 +25,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
         TONE_CLASSES[tone],
         className,
       )}

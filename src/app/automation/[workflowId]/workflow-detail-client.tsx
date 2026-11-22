@@ -81,7 +81,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+      <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading workflow…
       </div>
@@ -93,12 +93,12 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
       <div className="space-y-4">
         <Link
           href="/automation"
-          className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary"
+          className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Automation
         </Link>
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Workflow not found."}
         </div>
       </div>
@@ -108,10 +108,10 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
   const { workflow, runs } = data;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Link
         href="/automation"
-        className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary"
+        className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to Automation
@@ -121,7 +121,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         title={workflow.name}
         subtitle={workflow.description || `Trigger: ${workflow.triggerType}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <StatusBadge
               label={workflow.enabled ? "Enabled" : "Paused"}
               tone={workflow.enabled ? "success" : "neutral"}
@@ -134,7 +134,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
                 setNotice(null);
                 runMutation.mutate();
               }}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+              className="dusk-btn-primary h-9 px-4 text-xs disabled:opacity-50"
             >
               {runMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -151,10 +151,10 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         <div
           role="status"
           className={cn(
-            "flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs",
+            "flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium",
             notice.kind === "success"
-              ? "border-success/30 bg-success-subtle text-success"
-              : "border-danger/30 bg-danger-subtle text-danger",
+              ? "bg-success-subtle text-success"
+              : "bg-danger-subtle text-danger",
           )}
         >
           {notice.kind === "success" ? (
@@ -166,22 +166,19 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         </div>
       ) : null}
 
-      <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
+      <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-text-primary">Structured step sequence</h2>
+          <h2 className="text-base font-medium text-text-primary">Structured step sequence</h2>
           {workflow.nextRunAt ? (
-            <span className="inline-flex items-center gap-1 tabular-nums text-xs text-text-secondary">
+            <span className="inline-flex items-center gap-1.5 tabular-nums text-xs text-text-secondary">
               <Clock className="h-3.5 w-3.5" />
               Next scheduled: {new Date(workflow.nextRunAt).toLocaleString()}
             </span>
           ) : null}
         </div>
-        <ol className="space-y-2">
+        <ol className="divide-y divide-border/70 border-y border-border">
           {workflow.steps.map((step, i) => (
-            <li
-              key={step.id}
-              className="flex items-center justify-between rounded-lg border border-border bg-bg px-3.5 py-2.5 text-xs"
-            >
+            <li key={step.id} className="flex items-center justify-between py-3 text-xs">
               <span className="font-mono text-text-primary">
                 {i + 1}. {step.type}
               </span>
@@ -197,21 +194,18 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         </ol>
       </section>
 
-      <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold text-text-primary">Run history ({runs.length})</h2>
+      <section className="space-y-3 border-t border-border pt-6">
+        <h2 className="text-base font-medium text-text-primary">Run history ({runs.length})</h2>
         {runs.length === 0 ? (
           <p className="text-xs text-text-secondary">
             No executions recorded yet. Click &ldquo;Run now&rdquo; to execute this workflow.
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="divide-y divide-border border-y border-border">
             {runs.map((run) => (
-              <div
-                key={run.id}
-                className="space-y-2 rounded-lg border border-border bg-bg p-3.5 text-xs"
-              >
+              <div key={run.id} className="space-y-2.5 py-4 text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <StatusBadge
                       label={run.status}
                       tone={
@@ -223,23 +217,23 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
                       }
                       dot
                     />
-                    <span className="font-mono text-text-secondary">
-                      {run.triggerSource} · {new Date(run.startedAt).toLocaleString()}
+                    <span className="tabular-nums text-text-secondary">
+                      {run.triggerSource}, {new Date(run.startedAt).toLocaleString()}
                     </span>
                   </div>
-                  <span className="font-mono text-[11px] text-text-secondary">
+                  <span className="font-mono text-xs text-text-secondary">
                     {run.id.slice(0, 8)}
                   </span>
                 </div>
 
                 {run.errorMessage ? (
-                  <div className="rounded border border-danger/30 bg-danger-subtle px-2.5 py-1.5 text-danger">
+                  <div className="rounded-lg bg-danger-subtle px-3 py-2 text-danger">
                     {run.errorMessage}
                   </div>
                 ) : null}
 
                 {run.stepResults.length > 0 ? (
-                  <ul className="space-y-1 pt-1">
+                  <ul className="space-y-1.5 pl-2">
                     {run.stepResults.map((sr) => (
                       <li
                         key={`${run.id}-${sr.stepId}`}

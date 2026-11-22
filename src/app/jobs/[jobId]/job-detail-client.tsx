@@ -76,7 +76,7 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+      <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading job…
       </div>
@@ -86,11 +86,14 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
   if (error || !data) {
     return (
       <div className="space-y-4">
-        <Link href="/jobs" className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary">
+        <Link
+          href="/jobs"
+          className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
+        >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Jobs
         </Link>
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Job not found."}
         </div>
       </div>
@@ -109,8 +112,11 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
     parsedResult && typeof parsedResult.assetId === "string" ? parsedResult.assetId : null;
 
   return (
-    <div className="space-y-6">
-      <Link href="/jobs" className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary">
+    <div className="space-y-8">
+      <Link
+        href="/jobs"
+        className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
+      >
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to Jobs
       </Link>
@@ -130,7 +136,7 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
                 type="button"
                 onClick={() => pollMutation.mutate()}
                 disabled={pollMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {pollMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -145,7 +151,7 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
                 type="button"
                 onClick={() => pollMutation.mutate()}
                 disabled={pollMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-warning px-3 text-xs font-medium text-bg hover:opacity-90 disabled:opacity-50"
+                className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-warning px-3.5 text-xs font-medium text-bg hover:opacity-90 disabled:opacity-50"
               >
                 {pollMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -156,10 +162,7 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
               </button>
             ) : null}
             {linkedAssetId ? (
-              <Link
-                href={`/library/${linkedAssetId}`}
-                className="inline-flex h-8 items-center rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised"
-              >
+              <Link href={`/library/${linkedAssetId}`} className="dusk-btn-ghost h-8 px-3.5 text-xs">
                 Open asset
               </Link>
             ) : null}
@@ -168,39 +171,42 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
       />
 
       {pollMutation.error ? (
-        <div className="rounded-lg border border-danger/30 bg-danger-subtle p-3 text-xs text-danger">
+        <div className="rounded-xl bg-danger-subtle p-3.5 text-xs text-danger">
           {pollMutation.error instanceof Error ? pollMutation.error.message : "Action failed."}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <section className="space-y-2 rounded-xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-semibold text-text-primary">Redacted payload</h2>
-          <pre className="overflow-x-auto rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-primary">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="space-y-2.5">
+          <h2 className="text-sm font-medium text-text-primary">Redacted payload</h2>
+          <pre className="dusk-well overflow-x-auto p-4 font-mono text-xs text-text-primary">
             {job.payloadJson}
           </pre>
         </section>
 
-        <section className="space-y-2 rounded-xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-semibold text-text-primary">Result summary</h2>
-          <pre className="overflow-x-auto rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-primary">
+        <section className="space-y-2.5">
+          <h2 className="text-sm font-medium text-text-primary">Result summary</h2>
+          <pre className="dusk-well overflow-x-auto p-4 font-mono text-xs text-text-primary">
             {job.resultJson ?? "{}"}
           </pre>
         </section>
       </div>
 
-      <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold text-text-primary">Event timeline</h2>
-        <ol className="divide-y divide-border rounded-lg border border-border bg-bg">
+      <section className="space-y-3 border-t border-border pt-6">
+        <h2 className="text-base font-medium text-text-primary">Event timeline</h2>
+        <ol className="divide-y divide-border/70 border-y border-border">
           {events.map((ev) => (
-            <li key={ev.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <li
+              key={ev.id}
+              className="flex flex-col gap-1 py-3.5 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="space-y-0.5">
                 <div className="font-mono text-xs font-medium text-text-primary">
                   {ev.eventType}
                 </div>
                 <p className="text-xs text-text-secondary">{ev.message}</p>
               </div>
-              <span className="shrink-0 font-mono text-[11px] text-text-secondary">
+              <span className="shrink-0 tabular-nums text-xs text-text-secondary">
                 {new Date(ev.createdAt).toLocaleString()}
               </span>
             </li>

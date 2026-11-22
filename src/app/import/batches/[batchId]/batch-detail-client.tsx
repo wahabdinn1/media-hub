@@ -98,7 +98,7 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+      <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading batch…
       </div>
@@ -108,11 +108,14 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
   if (error || !data) {
     return (
       <div className="space-y-4">
-        <Link href="/import?tab=bulk" className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary">
+        <Link
+          href="/import?tab=bulk"
+          className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
+        >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Bulk Import
         </Link>
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Batch not found."}
         </div>
       </div>
@@ -130,15 +133,18 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
   const hasFailed = jobs.some((j) => j.status === "failed");
 
   return (
-    <div className="space-y-6">
-      <Link href="/import?tab=bulk" className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary">
+    <div className="space-y-8">
+      <Link
+        href="/import?tab=bulk"
+        className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary"
+      >
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to Bulk Import
       </Link>
 
       <PageHeader
         title={`Batch ${batch.id.slice(0, 8)}`}
-        subtitle={`${batch.completedCount} completed · ${batch.failedCount} failed · ${batch.totalCount} total`}
+        subtitle={`${batch.completedCount} completed, ${batch.failedCount} failed, ${batch.totalCount} total`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge label={batch.status} tone={statusTone(batch.status)} dot />
@@ -147,7 +153,7 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
                 type="button"
                 onClick={() => tickMutation.mutate()}
                 disabled={tickMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+                className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {tickMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -162,7 +168,7 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
                 type="button"
                 onClick={() => retryMutation.mutate()}
                 disabled={retryMutation.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                className="dusk-btn-ghost h-8 px-3.5 text-xs disabled:opacity-50"
               >
                 {retryMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -174,7 +180,7 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
             ) : null}
             <a
               href={`/api/import/batches/${batch.id}?format=csv`}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary hover:bg-surface-raised"
+              className="dusk-btn-ghost h-8 px-3.5 text-xs"
             >
               <Download className="h-3.5 w-3.5" />
               Export CSV
@@ -183,12 +189,12 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
         }
       />
 
-      <div className="space-y-1.5 rounded-xl border border-border bg-surface p-4">
+      <div className="space-y-2">
         <div className="flex justify-between text-xs text-text-secondary">
           <span>Batch completion</span>
-          <span className="font-mono">{pct}%</span>
+          <span className="tabular-nums font-medium text-text-primary">{pct}%</span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
           <div
             className="h-full w-full origin-left rounded-full bg-primary transition-transform duration-200"
             style={{ transform: `scaleX(${pct / 100})` }}
@@ -196,17 +202,17 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-text-secondary">
-              <th className="px-4 py-3 font-medium">Item</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Error</th>
-              <th className="px-4 py-3 font-medium">Links</th>
+              <th className="py-3 pr-4 font-medium whitespace-nowrap">Item</th>
+              <th className="py-3 pr-4 font-medium whitespace-nowrap">Status</th>
+              <th className="py-3 pr-4 font-medium whitespace-nowrap">Error</th>
+              <th className="py-3 font-medium whitespace-nowrap">Links</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/70">
             {jobs.map((job) => {
               let payload: { title?: string; redactedUrl?: string } = {};
               let result: { assetId?: string } = {};
@@ -218,27 +224,27 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
               } catch {}
 
               return (
-                <tr key={job.id} className="hover:bg-surface-raised/50">
-                  <td className="px-4 py-3">
+                <tr key={job.id} className="transition-colors hover:bg-surface/60">
+                  <td className="py-3.5 pr-4">
                     <div className="text-xs font-medium text-text-primary">
                       {payload.title || "Imported video"}
                     </div>
-                    <div className="font-mono text-[11px] text-text-secondary">
+                    <div className="font-mono text-xs text-text-secondary">
                       {payload.redactedUrl ?? job.id.slice(0, 12)}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="py-3.5 pr-4">
                     <StatusBadge
                       label={t.statuses.job[job.status as JobStatus] ?? job.status}
                       tone={statusTone(job.status)}
                       dot
                     />
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-danger">
-                    {job.errorCode ?? "—"}
+                  <td className="py-3.5 pr-4 font-mono text-xs text-danger">
+                    {job.errorCode ?? "None"}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3 text-xs">
+                  <td className="py-3.5">
+                    <div className="flex items-center gap-3 text-xs font-medium">
                       <Link href={`/jobs/${job.id}`} className="text-primary hover:underline">
                         Job
                       </Link>

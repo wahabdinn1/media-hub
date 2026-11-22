@@ -35,7 +35,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full bg-bg text-text-primary">
-      <Suspense fallback={<aside className="hidden w-60 shrink-0 border-r border-border bg-surface md:block" />}>
+      <Suspense
+        fallback={<aside className="hidden w-56 shrink-0 border-r border-border bg-surface md:block" />}
+      >
         <Sidebar />
       </Suspense>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -46,7 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {killSwitchEnabled ? (
           <div
             role="status"
-            className="flex items-center gap-2 border-b border-warning/30 bg-warning-subtle px-4 py-2 text-xs font-medium text-warning"
+            className="flex items-center gap-2 border-b border-warning/30 bg-warning-subtle px-6 py-2.5 text-xs font-medium text-warning"
           >
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t.quotas.killSwitchBanner}</span>
@@ -54,14 +56,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         ) : degradeModeActive ? (
           <div
             role="status"
-            className="flex items-center gap-2 border-b border-danger/30 bg-danger-subtle px-4 py-2 text-xs font-medium text-danger"
+            className="flex items-center gap-2 border-b border-danger/30 bg-danger-subtle px-6 py-2.5 text-xs font-medium text-danger"
           >
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t.quotas.degradeBanner}</span>
           </div>
         ) : null}
 
-        <main className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-24 pt-6 sm:px-6 md:pb-10">
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-5 pb-24 pt-8 sm:px-8 md:pb-14">
           {children}
         </main>
       </div>

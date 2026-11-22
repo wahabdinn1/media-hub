@@ -228,7 +228,7 @@ export function AutomationClient() {
   const collections = collectionsData?.collections ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title={t.automation.title}
         subtitle={t.automation.subtitle}
@@ -237,7 +237,7 @@ export function AutomationClient() {
             type="button"
             onClick={() => setShowBuilder((v) => !v)}
             disabled={data?.enabled === false}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+            className="dusk-btn-primary h-9 px-4 text-xs disabled:opacity-50"
           >
             <Plus className="h-3.5 w-3.5" />
             New workflow
@@ -246,8 +246,9 @@ export function AutomationClient() {
       />
 
       {data?.enabled === false ? (
-        <div className="rounded-xl border border-warning/30 bg-warning-subtle p-4 text-xs text-warning">
-          The Automation module is disabled in Settings. Existing workflows remain viewable, but new runs are paused.
+        <div className="rounded-xl bg-warning-subtle px-4 py-3 text-xs text-warning">
+          The Automation module is disabled in Settings. Existing workflows remain viewable, but new
+          runs are paused.
         </div>
       ) : null}
 
@@ -255,10 +256,10 @@ export function AutomationClient() {
         <div
           role="status"
           className={cn(
-            "flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs",
+            "flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium",
             notice.kind === "success"
-              ? "border-success/30 bg-success-subtle text-success"
-              : "border-danger/30 bg-danger-subtle text-danger",
+              ? "bg-success-subtle text-success"
+              : "bg-danger-subtle text-danger",
           )}
         >
           {notice.kind === "success" ? (
@@ -271,12 +272,10 @@ export function AutomationClient() {
       ) : null}
 
       {showBuilder ? (
-        <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-semibold text-text-primary">
-            Create sequential workflow
-          </h2>
+        <section className="dusk-plate space-y-5 p-6">
+          <h2 className="text-base font-medium text-text-primary">Create sequential workflow</h2>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-xs font-medium text-text-secondary">Workflow name</label>
               <input
@@ -284,7 +283,7 @@ export function AutomationClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Daily sync and organize"
-                className="mt-1 h-9 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
+                className="mt-1.5 h-10 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
               />
             </div>
             <div>
@@ -292,7 +291,7 @@ export function AutomationClient() {
               <select
                 value={triggerType}
                 onChange={(e) => setTriggerType(e.target.value as WorkflowTriggerType)}
-                className="mt-1 h-9 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
+                className="mt-1.5 h-10 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
               >
                 <option value="manual">Manual only</option>
                 <option value="interval_hourly">Hourly (shared cron tick)</option>
@@ -308,24 +307,19 @@ export function AutomationClient() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Syncs provider catalog and tags latest uploads."
-              className="mt-1 h-9 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
+              className="mt-1.5 h-10 w-full rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
             />
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border bg-bg p-3.5">
-            <div className="text-xs font-semibold text-text-primary">
+          <div className="space-y-3 border-t border-border pt-4">
+            <div className="text-xs font-medium text-text-secondary">
               Ordered steps ({steps.length}/10)
             </div>
-            <ol className="space-y-2">
+            <ol className="divide-y divide-border/70 border-y border-border/70">
               {steps.map((step, idx) => (
-                <li
-                  key={step.id}
-                  className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs"
-                >
-                  <span className="flex items-center gap-2 text-text-primary">
-                    <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
-                      {idx + 1}
-                    </span>
+                <li key={step.id} className="flex items-center justify-between gap-2 py-2.5 text-xs">
+                  <span className="flex items-center gap-2.5 text-text-primary">
+                    <span className="w-5 tabular-nums text-text-secondary">{idx + 1}.</span>
                     {stepLabel(step)}
                   </span>
                   <div className="flex items-center gap-1">
@@ -361,12 +355,12 @@ export function AutomationClient() {
               ))}
             </ol>
 
-            <div className="mt-3 space-y-2 border-t border-border pt-3">
+            <div className="space-y-2.5 pt-1">
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={newStepType}
                   onChange={(e) => setNewStepType(e.target.value as WorkflowStep["type"])}
-                  className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary"
+                  className="h-8 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                 >
                   <option value="sync_provider">Sync provider catalog</option>
                   <option value="import_url">Import authorized direct URL</option>
@@ -380,7 +374,7 @@ export function AutomationClient() {
                     max={5}
                     value={stepMaxPages}
                     onChange={(e) => setStepMaxPages(Number(e.target.value) || 3)}
-                    className="h-8 w-24 rounded-md border border-border bg-surface px-2 text-xs text-text-primary"
+                    className="h-8 w-24 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                     title="Max pages per sync"
                   />
                 ) : null}
@@ -390,7 +384,7 @@ export function AutomationClient() {
                     <select
                       value={stepCollectionId}
                       onChange={(e) => setStepCollectionId(e.target.value)}
-                      className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary"
+                      className="h-8 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                     >
                       <option value="">Choose collection…</option>
                       {collections.map((c) => (
@@ -405,7 +399,7 @@ export function AutomationClient() {
                       max={50}
                       value={stepLimit}
                       onChange={(e) => setStepLimit(Number(e.target.value) || 10)}
-                      className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-xs text-text-primary"
+                      className="h-8 w-20 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                     />
                   </>
                 ) : null}
@@ -414,7 +408,7 @@ export function AutomationClient() {
                   type="button"
                   onClick={addStep}
                   disabled={steps.length >= 10}
-                  className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                  className="dusk-btn-ghost h-8 px-3 text-xs disabled:opacity-50"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add step
@@ -428,14 +422,14 @@ export function AutomationClient() {
                     value={stepUrl}
                     onChange={(e) => setStepUrl(e.target.value)}
                     placeholder="https://cdn.example.com/media/video.mp4"
-                    className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary"
+                    className="h-8 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                   />
                   <input
                     type="text"
                     value={stepTitle}
                     onChange={(e) => setStepTitle(e.target.value)}
                     placeholder="Optional title"
-                    className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary"
+                    className="h-8 rounded-lg border border-border bg-bg px-2.5 text-xs text-text-primary"
                   />
                   <label className="col-span-full flex items-center gap-2 text-xs text-text-secondary">
                     <input
@@ -451,12 +445,12 @@ export function AutomationClient() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 pt-1">
             <button
               type="button"
               disabled={!name.trim() || steps.length === 0 || createMutation.isPending}
               onClick={() => createMutation.mutate()}
-              className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+              className="dusk-btn-primary h-9 px-4 text-xs disabled:opacity-50"
             >
               {createMutation.isPending ? "Saving…" : "Save workflow"}
             </button>
@@ -472,14 +466,14 @@ export function AutomationClient() {
       ) : null}
 
       {isLoading ? (
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+        <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading workflows…
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Failed to load workflows."}
         </div>
       ) : null}
@@ -493,7 +487,7 @@ export function AutomationClient() {
             <button
               type="button"
               onClick={() => setShowBuilder(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
+              className="dusk-btn-primary h-9 px-4 text-xs"
             >
               <Plus className="h-3.5 w-3.5" />
               Create first workflow
@@ -502,87 +496,82 @@ export function AutomationClient() {
         />
       ) : null}
 
+      {/* Dusk Ruled Operational List — replaces generic card grid */}
       {workflows.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="divide-y divide-border border-y border-border">
           {workflows.map((wf) => (
             <article
               key={wf.id}
-              className="space-y-3 rounded-xl border border-border bg-surface p-5"
+              className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Link
                     href={`/automation/${wf.id}`}
-                    className="text-sm font-semibold text-text-primary hover:text-primary"
+                    className="text-base font-medium text-text-primary hover:text-primary"
                   >
                     {wf.name}
                   </Link>
-                  {wf.description ? (
-                    <p className="mt-0.5 text-xs text-text-secondary">{wf.description}</p>
+                  <StatusBadge
+                    label={wf.enabled ? "Enabled" : "Paused"}
+                    tone={wf.enabled ? "success" : "neutral"}
+                    dot
+                  />
+                </div>
+                {wf.description ? (
+                  <p className="text-xs text-text-secondary">{wf.description}</p>
+                ) : null}
+                <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    {triggerLabel(wf.triggerType)}
+                  </span>
+                  <span className="tabular-nums">{wf.steps.length} step(s)</span>
+                  {wf.lastRunAt ? (
+                    <span className="tabular-nums">
+                      Last run: {new Date(wf.lastRunAt).toLocaleString()}
+                    </span>
                   ) : null}
                 </div>
-                <StatusBadge
-                  label={wf.enabled ? "Enabled" : "Paused"}
-                  tone={wf.enabled ? "success" : "neutral"}
-                  dot
-                />
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {triggerLabel(wf.triggerType)}
-                </span>
-                <span className="tabular-nums">{wf.steps.length} step(s)</span>
-                {wf.lastRunAt ? (
-                  <span className="tabular-nums">
-                    Last run: {new Date(wf.lastRunAt).toLocaleString()}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={runMutation.isPending || data?.enabled === false}
-                    onClick={() => {
-                      setNotice(null);
-                      runMutation.mutate(wf.id);
-                    }}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
-                  >
-                    <Play className="h-3.5 w-3.5" />
-                    Run now
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleMutation.mutate({ id: wf.id, enabled: !wf.enabled })}
-                    className="inline-flex h-8 items-center rounded-md border border-border bg-bg px-3 text-xs font-medium text-text-primary hover:bg-surface-raised"
-                  >
-                    {wf.enabled ? "Pause" : "Enable"}
-                  </button>
-                  <Link
-                    href={`/automation/${wf.id}`}
-                    className="inline-flex h-8 items-center rounded-md border border-border bg-bg px-3 text-xs font-medium text-text-primary hover:bg-surface-raised"
-                  >
-                    History
-                  </Link>
-                </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={runMutation.isPending || data?.enabled === false}
+                  onClick={() => {
+                    setNotice(null);
+                    runMutation.mutate(wf.id);
+                  }}
+                  className="dusk-btn-primary h-8 px-3.5 text-xs disabled:opacity-50"
+                >
+                  <Play className="h-3.5 w-3.5" />
+                  Run now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleMutation.mutate({ id: wf.id, enabled: !wf.enabled })}
+                  className="dusk-btn-ghost h-8 px-3 text-xs"
+                >
+                  {wf.enabled ? "Pause" : "Enable"}
+                </button>
+                <Link href={`/automation/${wf.id}`} className="dusk-btn-ghost h-8 px-3 text-xs">
+                  History
+                </Link>
 
                 {confirmDeleteId === wf.id ? (
                   <span className="inline-flex items-center gap-1 text-xs">
                     <button
                       type="button"
                       onClick={() => deleteMutation.mutate(wf.id)}
-                      className="rounded bg-danger px-2 py-1 font-medium text-primary-foreground"
+                      className="rounded-full bg-danger px-2.5 py-1 font-medium text-primary-foreground"
                     >
                       Confirm
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmDeleteId(null)}
-                      className="px-1 text-text-secondary hover:text-text-primary"
+                      className="px-1.5 text-text-secondary hover:text-text-primary"
                     >
                       Cancel
                     </button>
@@ -592,7 +581,7 @@ export function AutomationClient() {
                     type="button"
                     onClick={() => setConfirmDeleteId(wf.id)}
                     aria-label={`Delete ${wf.name}`}
-                    className="rounded p-1.5 text-text-secondary hover:text-danger"
+                    className="rounded-full p-1.5 text-text-secondary hover:text-danger"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
