@@ -7,6 +7,7 @@ import { recordActivity } from "@/db/repositories/activity";
 import { syncProviderCatalog } from "@/db/repositories/assets";
 import { createIdempotentJob, transitionJob } from "@/db/repositories/jobs";
 import { decryptConnectionCredentials } from "@/db/repositories/providers";
+import { assertModuleEnabled, getPersistedSettings } from "@/db/repositories/settings";
 import { getCurrentUsageCounters, incrementUsageCounter } from "@/db/repositories/usage";
 import { toApiErrorResponse } from "@/lib/api-error";
 import { getProviderRegistry } from "@/lib/registry";
@@ -17,8 +18,17 @@ export async function POST(request: NextRequest) {
     await requireOwnerRequest(request, "job.create");
 
     const { db } = await getDb();
-    const counters = await getCurrentUsageCounters(db);
-    const quota = evaluateQuotaState(counters);
+    if (!(await assertModuleEnabled(db, "library"))) {
+      return NextResponse.json(
+        { error: "The Library module is disabled in Settings." },
+        { status: 403 },
+      );
+    }
+    const [settings, counters] = await Promise.all([
+      getPersistedSettings(db),
+      getCurrentUsageCounters(db),
+    ]);
+    const quota = evaluateQuotaState(counters, { killSwitchEnabled: settings.killSwitchEnabled });
     const gate = canEnqueueJob(quota, "video.sync");
     if (!gate.allowed) {
       return NextResponse.json({ error: gate.reason, code: "QUOTA_EXCEEDED" }, { status: 429 });

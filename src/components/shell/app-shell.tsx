@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { getMessages } from "@/shared";
 import { useUiStore } from "@/store/ui-store";
@@ -8,9 +9,29 @@ import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
 
+interface HealthBannerData {
+  quota?: {
+    killSwitchEnabled?: boolean;
+    degradeModeActive?: boolean;
+  };
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = getMessages("en");
-  const killSwitchEnabled = useUiStore((s) => s.killSwitchEnabled);
+  const localKillSwitch = useUiStore((s) => s.killSwitchEnabled);
+
+  const { data: health } = useQuery<HealthBannerData>({
+    queryKey: ["poc-health"],
+    queryFn: async () => {
+      const res = await fetch("/api/poc/health");
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 30_000,
+  });
+
+  const killSwitchEnabled = health?.quota?.killSwitchEnabled ?? localKillSwitch;
+  const degradeModeActive = Boolean(health?.quota?.degradeModeActive);
 
   return (
     <div className="flex min-h-screen w-full bg-bg text-text-primary">
@@ -29,6 +50,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t.quotas.killSwitchBanner}</span>
+          </div>
+        ) : degradeModeActive ? (
+          <div
+            role="status"
+            className="flex items-center gap-2 border-b border-danger/30 bg-danger-subtle px-4 py-2 text-xs font-medium text-danger"
+          >
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{t.quotas.degradeBanner}</span>
           </div>
         ) : null}
 

@@ -19,6 +19,7 @@ import { getMessages } from "@/shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { BulkImportPanel } from "@/components/import/bulk-import-panel";
 import { cn } from "@/lib/cn";
 
 type ImportTab = "url" | "file" | "bulk" | "cloud";
@@ -310,13 +311,7 @@ export function ImportClient() {
         />
       ) : null}
 
-      {activeTab === "bulk" ? (
-        <EmptyState
-          icon={FileSpreadsheet}
-          title="Bulk import & dry-run preview"
-          body={t.importPage.bulkNotice}
-        />
-      ) : null}
+      {activeTab === "bulk" ? <BulkImportPanel /> : null}
     </div>
   );
 }

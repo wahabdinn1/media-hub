@@ -3,6 +3,7 @@ import { evaluateQuotaState } from "@/core";
 import { getDb } from "@/db/client";
 import { countActiveJobs } from "@/db/repositories/jobs";
 import { listSanitizedConnections } from "@/db/repositories/providers";
+import { getPersistedSettings } from "@/db/repositories/settings";
 import { getCurrentUsageCounters } from "@/db/repositories/usage";
 import { getProviderRegistry } from "@/lib/registry";
 
@@ -25,21 +26,22 @@ export async function GET() {
   try {
     const { db, mode } = await getDb();
     dbMode = mode;
-    const [conns, active, counters] = await Promise.all([
+    const [conns, active, counters, settings] = await Promise.all([
       listSanitizedConnections(db),
       countActiveJobs(db),
       getCurrentUsageCounters(db),
+      getPersistedSettings(db),
     ]);
     connectedProviders = conns.filter((c) => c.status === "active").length;
     activeJobsCount = active;
-    quota = evaluateQuotaState(counters);
+    quota = evaluateQuotaState(counters, { killSwitchEnabled: settings.killSwitchEnabled });
   } catch {
     dbMode = "error";
   }
 
   return NextResponse.json({
     ok: true,
-    phase: "phase-3",
+    phase: "phase-4",
     runtime: "nextjs-app-router",
     dbMode,
     connectedProviders,
@@ -47,6 +49,7 @@ export async function GET() {
     registeredAdapters: adapters,
     quota: {
       overallLevel: quota.overallLevel,
+      killSwitchEnabled: quota.killSwitchEnabled,
       degradeModeActive: quota.degradeModeActive,
     },
     elapsedMs: Number((performance.now() - started).toFixed(2)),
