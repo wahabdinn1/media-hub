@@ -427,12 +427,52 @@ export function LibraryClient() {
         </div>
       ) : null}
 
-      {/* Dusk Organization Well: borderless tinted well with internal hairline divider */}
-      <section className="dusk-well grid grid-cols-1 divide-y divide-border/70 p-5 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-        <div className="space-y-3 pb-4 lg:pb-0 lg:pr-6">
+      {/* Midnight Bento Summary Strip */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="dusk-plate flex items-center gap-4 p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary">
+            <Film className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-text-secondary">Catalog videos</div>
+            <div className="font-display text-2xl font-semibold tabular-nums text-text-primary">
+              {data ? new Intl.NumberFormat("en-US").format(data.total) : "0"}
+            </div>
+          </div>
+        </div>
+        <div className="dusk-plate flex items-center gap-4 p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-subtle text-violet">
+            <Layers className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-text-secondary">Collections</div>
+            <div className="font-display text-2xl font-semibold tabular-nums text-text-primary">
+              {collectionsList.length}
+            </div>
+          </div>
+        </div>
+        <div className="dusk-plate flex items-center gap-4 p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-info-subtle text-info">
+            <Folder className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-text-secondary">Provider folders</div>
+            <div className="font-display text-2xl font-semibold tabular-nums text-text-primary">
+              {folders.length}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Side-by-side Bento Organization Cards */}
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="dusk-plate space-y-3.5 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-medium text-text-primary">MediaHub collections</h2>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-subtle text-violet">
+                <Layers className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <h2 className="text-sm font-semibold text-text-primary">MediaHub collections</h2>
               <span className="tabular-nums text-xs text-text-secondary">
                 ({collectionsList.length})
               </span>
@@ -551,10 +591,13 @@ export function LibraryClient() {
           )}
         </div>
 
-        <div className="space-y-3 pt-4 lg:pl-6 lg:pt-0">
+        <div className="dusk-plate space-y-3.5 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-medium text-text-primary">Provider folders</h2>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info-subtle text-info">
+                <Folder className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <h2 className="text-sm font-semibold text-text-primary">Provider folders</h2>
               <span className="tabular-nums text-xs text-text-secondary">({folders.length})</span>
             </div>
             <button
@@ -690,9 +733,9 @@ export function LibraryClient() {
         </div>
       ) : null}
 
-      {/* Filter & View Toolbar: Dusk ruled tabs + borderless search */}
-      <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-4 text-xs">
+      {/* Filter & View Toolbar: Midnight Bento pill bar */}
+      <div className="dusk-plate flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {filters.map((f) => {
             const active = statusParam === f.key;
             return (
@@ -701,19 +744,18 @@ export function LibraryClient() {
                 type="button"
                 onClick={() => updateQuery({ status: f.key })}
                 className={cn(
-                  "inline-flex items-center gap-1.5 font-medium transition-colors",
-                  active ? "text-text-primary" : "text-text-secondary hover:text-text-primary",
+                  "rounded-full px-3 py-1.5 font-medium transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface-raised/70 text-text-secondary hover:text-text-primary",
                 )}
               >
-                {active ? (
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-                ) : null}
                 {f.label}
               </button>
             );
           })}
           {activeCollection ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-subtle px-2.5 py-0.5 font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-subtle px-3 py-1 font-medium text-violet">
               <Layers className="h-3 w-3" />
               {activeCollection.name}
               <button
@@ -734,7 +776,7 @@ export function LibraryClient() {
               e.preventDefault();
               updateQuery({ q: searchInput });
             }}
-            className="relative flex-1 sm:w-56"
+            className="relative flex-1 sm:w-60"
           >
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-secondary" />
             <input
@@ -742,19 +784,19 @@ export function LibraryClient() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Filter title…"
-              className="h-8 w-full rounded-full border border-border bg-surface pl-8 pr-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+              className="h-8 w-full rounded-xl border border-border bg-bg pl-8 pr-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
             />
           </form>
 
-          <div className="inline-flex items-center gap-1 rounded-full bg-surface p-0.5">
+          <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-bg p-0.5">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
               aria-label={t.library.viewGrid}
               className={cn(
-                "rounded-full p-1.5 transition-colors",
+                "rounded-lg p-1.5 transition-colors",
                 viewMode === "grid"
-                  ? "bg-surface-raised text-text-primary"
+                  ? "bg-primary-subtle text-primary"
                   : "text-text-secondary hover:text-text-primary",
               )}
             >
@@ -765,9 +807,9 @@ export function LibraryClient() {
               onClick={() => setViewMode("table")}
               aria-label={t.library.viewTable}
               className={cn(
-                "rounded-full p-1.5 transition-colors",
+                "rounded-lg p-1.5 transition-colors",
                 viewMode === "table"
-                  ? "bg-surface-raised text-text-primary"
+                  ? "bg-primary-subtle text-primary"
                   : "text-text-secondary hover:text-text-primary",
               )}
             >
@@ -778,14 +820,14 @@ export function LibraryClient() {
       </div>
 
       {isLoading ? (
-        <div className="dusk-well flex items-center gap-2 p-6 text-sm text-text-secondary">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="dusk-plate flex items-center gap-2.5 p-6 text-sm text-text-secondary">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
           Loading catalog…
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl bg-danger-subtle p-4 text-sm text-danger">
+        <div className="rounded-2xl bg-danger-subtle p-4 text-sm text-danger">
           {error instanceof Error ? error.message : "Failed to load catalog."}
         </div>
       ) : null}
@@ -829,107 +871,113 @@ export function LibraryClient() {
         />
       ) : null}
 
-      {/* Full-width borderless hairline table (craft.md § 9) */}
+      {/* Midnight Bento Table Card */}
       {data && data.items.length > 0 && viewMode === "table" ? (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[680px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-text-secondary">
-                <th className="w-9 py-3 pr-3">
-                  <input
-                    type="checkbox"
-                    aria-label="Select all visible assets"
-                    checked={allVisibleSelected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedIds(data.items.map((i) => i.id));
-                      } else {
-                        setSelectedIds([]);
-                      }
-                    }}
-                    className="h-3.5 w-3.5 rounded border-border accent-primary"
-                  />
-                </th>
-                <th className="py-3 pr-4 font-medium whitespace-nowrap">Asset</th>
-                <th className="py-3 pr-4 font-medium whitespace-nowrap">Status</th>
-                <th className="py-3 pr-4 font-medium whitespace-nowrap">Provider</th>
-                <th className="py-3 pr-4 font-medium whitespace-nowrap">Duration</th>
-                <th className="py-3 font-medium whitespace-nowrap">Updated</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/70">
-              {data.items.map((item, idx) => (
-                <tr key={item.id} className="transition-colors hover:bg-surface/60">
-                  <td className="py-3.5 pr-3">
+        <section className="dusk-plate overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-border/80 bg-surface-raised/35 text-xs text-text-secondary">
+                  <th className="w-10 px-5 py-3">
                     <input
                       type="checkbox"
-                      aria-label={`Select ${item.title}`}
-                      checked={selectedIds.includes(item.id)}
-                      onChange={() => toggleSelect(item.id)}
+                      aria-label="Select all visible assets"
+                      checked={allVisibleSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(data.items.map((i) => i.id));
+                        } else {
+                          setSelectedIds([]);
+                        }
+                      }}
                       className="h-3.5 w-3.5 rounded border-border accent-primary"
                     />
-                  </td>
-                  <td className="py-3.5 pr-4">
-                    <Link href={`/library/${item.id}`} className="flex items-center gap-3.5">
-                      <div className="flex h-10 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-raised">
-                        {item.thumbnailUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.thumbnailUrl}
-                            alt=""
-                            className="h-full w-full object-cover"
-                            loading={idx === 0 ? "eager" : "lazy"}
-                            fetchPriority={idx === 0 ? "high" : undefined}
-                          />
-                        ) : (
-                          <Film className="h-4 w-4 text-text-secondary" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate font-medium text-text-primary hover:text-primary">
-                          {item.title}
-                        </div>
-                        <div className="font-mono text-xs text-text-secondary">
-                          {item.id.slice(0, 8)}
-                        </div>
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="py-3.5 pr-4">
-                    <StatusBadge
-                      label={t.statuses.asset[item.canonicalStatus]}
-                      tone={assetStatusTone(item.canonicalStatus)}
-                      dot
-                    />
-                  </td>
-                  <td className="py-3.5 pr-4">
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.providers.map((p) => (
-                        <ProviderBadge
-                          key={`${p.connectionId}-${p.externalId}`}
-                          providerKey={p.providerKey}
-                        />
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-3.5 pr-4 tabular-nums text-xs text-text-secondary">
-                    {formatDuration(item.durationSeconds)}
-                  </td>
-                  <td className="py-3.5 tabular-nums text-xs text-text-secondary">
-                    {new Date(item.updatedAt).toLocaleDateString()}
-                  </td>
+                  </th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Asset</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Provider</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Duration</th>
+                  <th className="px-5 py-3 font-medium whitespace-nowrap">Updated</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border/70">
+                {data.items.map((item, idx) => (
+                  <tr key={item.id} className="transition-colors hover:bg-surface-raised/35">
+                    <td className="px-5 py-3.5">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${item.title}`}
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                        className="h-3.5 w-3.5 rounded border-border accent-primary"
+                      />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <Link href={`/library/${item.id}`} className="flex items-center gap-3.5">
+                        <div className="flex h-10 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/70 bg-bg">
+                          {item.thumbnailUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={item.thumbnailUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              loading={idx === 0 ? "eager" : "lazy"}
+                              fetchPriority={idx === 0 ? "high" : undefined}
+                            />
+                          ) : (
+                            <Film className="h-4 w-4 text-text-secondary" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-text-primary hover:text-primary">
+                            {item.title}
+                          </div>
+                          <div className="font-mono text-xs text-text-secondary">
+                            {item.id.slice(0, 8)}
+                          </div>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge
+                        label={t.statuses.asset[item.canonicalStatus]}
+                        tone={assetStatusTone(item.canonicalStatus)}
+                        dot
+                      />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.providers.map((p) => (
+                          <ProviderBadge
+                            key={`${p.connectionId}-${p.externalId}`}
+                            providerKey={p.providerKey}
+                          />
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 tabular-nums text-xs text-text-secondary">
+                      {formatDuration(item.durationSeconds)}
+                    </td>
+                    <td className="px-5 py-3.5 tabular-nums text-xs text-text-secondary">
+                      {new Date(item.updatedAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       ) : null}
 
       {data && data.items.length > 0 && viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {data.items.map((item, idx) => (
-            <Link key={item.id} href={`/library/${item.id}`} className="group block space-y-2.5">
-              <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-surface">
+            <Link
+              key={item.id}
+              href={`/library/${item.id}`}
+              className="dusk-plate group block overflow-hidden p-3 transition-colors hover:border-primary/40"
+            >
+              <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-bg">
                 {item.thumbnailUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -948,8 +996,8 @@ export function LibraryClient() {
                   </span>
                 ) : null}
               </div>
-              <div className="space-y-1.5">
-                <div className="line-clamp-2 text-sm font-medium text-text-primary group-hover:text-primary">
+              <div className="space-y-2 px-1 pt-3">
+                <div className="line-clamp-2 text-sm font-semibold text-text-primary group-hover:text-primary">
                   {item.title}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">

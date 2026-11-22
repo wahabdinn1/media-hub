@@ -515,8 +515,11 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
         </div>
       ) : null}
 
-      {/* Dusk Ruled Dot-Tabs */}
-      <nav aria-label="Asset tabs" className="flex flex-wrap items-center gap-6 border-b border-border text-sm">
+      {/* Midnight Bento Capsule Tabs */}
+      <nav
+        aria-label="Asset tabs"
+        className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-surface p-1 text-xs"
+      >
         {tabs.map((item) => {
           const active = tab === item.key;
           return (
@@ -525,15 +528,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
               type="button"
               onClick={() => setTab(item.key)}
               className={cn(
-                "inline-flex items-center gap-2 border-b-2 pb-3 font-medium whitespace-nowrap transition-colors",
+                "rounded-lg px-3.5 py-1.5 font-medium whitespace-nowrap transition-colors",
                 active
-                  ? "border-primary text-text-primary"
-                  : "border-transparent text-text-secondary hover:text-text-primary",
+                  ? "bg-primary-subtle text-primary"
+                  : "text-text-secondary hover:text-text-primary",
               )}
             >
-              {active ? (
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              ) : null}
               {item.label}
             </button>
           );
@@ -541,10 +541,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       </nav>
 
       {tab === "overview" ? (
-        <div className="space-y-10">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            <div className="overflow-hidden rounded-2xl bg-surface lg:col-span-5">
-              <div className="flex aspect-video items-center justify-center">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+            <div className="dusk-plate overflow-hidden p-3 lg:col-span-5">
+              <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-bg">
                 {activeThumb?.sourceUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -559,38 +559,38 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
               </div>
             </div>
 
-            <div className="space-y-4 lg:col-span-7">
-              <h2 className="text-base font-medium text-text-primary">Universal asset metadata</h2>
-              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 border-t border-border pt-4 text-xs sm:grid-cols-2">
-                <div>
+            <div className="dusk-plate space-y-4 p-6 lg:col-span-7">
+              <h2 className="text-base font-semibold text-text-primary">Universal asset metadata</h2>
+              <dl className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">MediaHub Asset ID</dt>
-                  <dd className="mt-1 font-mono text-text-primary">{asset.id}</dd>
+                  <dd className="mt-1 truncate font-mono text-text-primary">{asset.id}</dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">Canonical status</dt>
-                  <dd className="mt-1 text-text-primary">
+                  <dd className="mt-1 font-medium text-text-primary">
                     {t.statuses.asset[asset.canonicalStatus]}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">Duration</dt>
-                  <dd className="mt-1 tabular-nums text-text-primary">
+                  <dd className="mt-1 tabular-nums font-medium text-text-primary">
                     {asset.durationSeconds ? `${asset.durationSeconds}s` : "None"}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">File size</dt>
-                  <dd className="mt-1 tabular-nums text-text-primary">
+                  <dd className="mt-1 tabular-nums font-medium text-text-primary">
                     {asset.sizeBytes ? `${(asset.sizeBytes / 1024 ** 2).toFixed(2)} MiB` : "None"}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">Registered</dt>
                   <dd className="mt-1 tabular-nums text-text-primary">
                     {new Date(asset.createdAt).toLocaleString()}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/70 bg-bg/45 p-3">
                   <dt className="text-text-secondary">Provider locations</dt>
                   <dd className="mt-1 flex flex-wrap gap-1.5">
                     {locations.map((loc) => (
@@ -602,10 +602,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
             </div>
           </div>
 
-          {/* Ruled Operations Workbench — zero card-in-card */}
-          <section className="space-y-6 border-t border-border pt-8">
+          {/* Midnight Bento Operations Card */}
+          <section className="dusk-plate space-y-5 p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-medium text-text-primary">Asset operations</h2>
+              <h2 className="text-base font-semibold text-text-primary">Asset operations</h2>
               {primaryLoc && !primaryLoc.canMutate ? (
                 <span className="rounded-full bg-warning-subtle px-3 py-1 text-xs text-warning">
                   Read-only: {primaryLoc.readOnlyReason}
@@ -613,7 +613,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
               ) : null}
             </div>
 
-            <div className="divide-y divide-border/70 border-y border-border">
+            <div className="divide-y divide-border/70 border-t border-border/80">
               <div className="grid grid-cols-1 gap-3 py-4 lg:grid-cols-12 lg:items-center">
                 <div className="flex items-center gap-2 text-xs font-medium text-text-primary lg:col-span-4">
                   <Pencil className="h-3.5 w-3.5 text-primary" />
@@ -917,9 +917,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "thumbnail" ? (
-        <div className="space-y-8">
-          <section className="space-y-3 border-b border-border pb-6">
-            <h2 className="text-base font-medium text-text-primary">
+        <div className="space-y-6">
+          <section className="dusk-plate space-y-3 p-6">
+            <h2 className="text-base font-semibold text-text-primary">
               Apply custom thumbnail (Direct Image URL)
             </h2>
             {canThumbUrl ? (
@@ -943,7 +943,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     onChange={(e) => setThumbUrlInput(e.target.value)}
                     placeholder="https://cdn.example.com/posters/video-thumb.webp"
                     required
-                    className="h-10 flex-1 rounded-lg border border-border bg-surface px-3.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                    className="h-10 flex-1 rounded-xl border border-border bg-bg px-3.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
                   />
                   <button
                     type="submit"
@@ -969,10 +969,10 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
           </section>
 
           {thumbnails.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {thumbnails.map((th) => (
-                <div key={th.id} className="space-y-2.5">
-                  <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-surface">
+                <div key={th.id} className="dusk-plate space-y-3 p-3">
+                  <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-bg">
                     {th.sourceUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={th.sourceUrl} alt="" className="h-full w-full object-cover" />
@@ -980,12 +980,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                       <ImageIcon className="h-6 w-6 text-text-secondary" />
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="capitalize text-text-primary">
+                  <div className="flex items-center justify-between gap-2 px-1 text-xs">
+                    <span className="capitalize font-medium text-text-primary">
                       {th.sourceType.replace("_", " ")} thumbnail
                     </span>
                     {th.isActive ? (
-                      <StatusBadge label="Active" tone="success" />
+                      <StatusBadge label="Active" tone="success" dot />
                     ) : (
                       <button
                         type="button"
@@ -1014,9 +1014,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "subtitles" ? (
-        <div className="space-y-8">
-          <section className="space-y-3 border-b border-border pb-6">
-            <h2 className="text-base font-medium text-text-primary">
+        <div className="space-y-6">
+          <section className="dusk-plate space-y-3 p-6">
+            <h2 className="text-base font-semibold text-text-primary">
               Attach subtitle track (SRT / VTT)
             </h2>
             {canSubtitles ? (
@@ -1044,12 +1044,12 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     onChange={(e) => setSubLangInput(e.target.value)}
                     placeholder="en / id"
                     required
-                    className="h-10 rounded-lg border border-border bg-surface px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                    className="h-10 rounded-xl border border-border bg-bg px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
                   />
                   <select
                     value={subFormatInput}
                     onChange={(e) => setSubFormatInput(e.target.value as "srt" | "vtt")}
-                    className="h-10 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                    className="h-10 rounded-xl border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
                   >
                     <option value="vtt">VTT</option>
                     <option value="srt">SRT</option>
@@ -1060,7 +1060,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                     onChange={(e) => setSubUrlInput(e.target.value)}
                     placeholder="https://cdn.example.com/subs/video-en.vtt"
                     required
-                    className="h-10 rounded-lg border border-border bg-surface px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none sm:col-span-3"
+                    className="h-10 rounded-xl border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none sm:col-span-3"
                   />
                   <button
                     type="submit"
@@ -1086,15 +1086,17 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
           </section>
 
           {assetSubtitles.length > 0 ? (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-text-primary">
-                Attached subtitles ({assetSubtitles.length})
-              </h3>
-              <ul className="divide-y divide-border border-y border-border">
+            <section className="dusk-plate overflow-hidden">
+              <div className="border-b border-border/80 px-5 py-4">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Attached subtitles ({assetSubtitles.length})
+                </h3>
+              </div>
+              <ul className="divide-y divide-border/70 px-5">
                 {assetSubtitles.map((sub) => (
                   <li
                     key={sub.id}
-                    className="flex flex-wrap items-center justify-between gap-2 py-3 text-xs"
+                    className="flex flex-wrap items-center justify-between gap-2 py-3.5 text-xs"
                   >
                     <div className="flex items-center gap-2.5">
                       <StatusBadge label={sub.language} tone="info" />
@@ -1116,7 +1118,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : (
             <EmptyState
               icon={Subtitles}
@@ -1128,37 +1130,53 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "history" ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {relatedJobs.length > 0 ? (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-text-primary">Related jobs</h3>
-              <ul className="divide-y divide-border border-y border-border">
+            <section className="dusk-plate overflow-hidden">
+              <div className="border-b border-border/80 px-5 py-4">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Related jobs ({relatedJobs.length})
+                </h3>
+              </div>
+              <ul className="divide-y divide-border/70 px-5">
                 {relatedJobs.map((j) => (
-                  <li key={j.id} className="flex items-center justify-between py-3 text-xs">
+                  <li key={j.id} className="flex items-center justify-between py-3.5 text-xs">
                     <Link href={`/jobs/${j.id}`} className="font-mono text-primary hover:underline">
                       {j.jobType} ({j.id.slice(0, 8)})
                     </Link>
-                    <StatusBadge label={j.status} tone="info" />
+                    <StatusBadge label={j.status} tone="info" dot />
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : null}
 
           {history.length > 0 ? (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-text-primary">Audit events</h3>
-              <ul className="divide-y divide-border border-y border-border">
-                {history.map((ev) => (
-                  <li key={ev.id} className="flex items-center justify-between py-3 text-xs">
-                    <span className="font-mono text-text-primary">{ev.action}</span>
+            <section className="dusk-plate overflow-hidden">
+              <div className="border-b border-border/80 px-5 py-4">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Audit events ({history.length})
+                </h3>
+              </div>
+              <ul className="divide-y divide-border/70 px-5">
+                {history.map((ev, idx) => (
+                  <li key={ev.id} className="flex items-center justify-between gap-3 py-3.5 text-xs">
+                    <span className="flex items-center gap-2.5 font-mono text-text-primary">
+                      <span
+                        className={cn(
+                          "h-2 w-2 shrink-0 rounded-full",
+                          idx % 2 === 0 ? "bg-success" : "bg-info",
+                        )}
+                      />
+                      {ev.action}
+                    </span>
                     <span className="tabular-nums text-text-secondary">
                       {new Date(ev.createdAt).toLocaleString()}
                     </span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : (
             <EmptyState
               icon={History}

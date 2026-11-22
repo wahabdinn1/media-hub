@@ -21,7 +21,7 @@ export function QuotaMeter({ meter }: { meter: QuotaMeterSnapshot }) {
         : "bg-primary";
 
   return (
-    <div className="space-y-2 py-3">
+    <div className="space-y-2 py-2.5">
       <div className="flex items-baseline justify-between gap-3 text-xs">
         <span className="font-medium text-text-primary">{t.quotas.metrics[meter.metric]}</span>
         <span className="tabular-nums text-text-secondary">
@@ -29,7 +29,7 @@ export function QuotaMeter({ meter }: { meter: QuotaMeterSnapshot }) {
         </span>
       </div>
       <div
-        className="h-1 w-full overflow-hidden rounded-full bg-surface-raised"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised"
         role="progressbar"
         aria-valuenow={meter.percent}
         aria-valuemin={0}
@@ -43,7 +43,7 @@ export function QuotaMeter({ meter }: { meter: QuotaMeterSnapshot }) {
       </div>
       <div className="flex items-center justify-between text-xs text-text-secondary">
         <span>Hard cap: {formatValue(meter.hardLimit, meter.unit)}</span>
-        <span className="tabular-nums">{meter.percent}%</span>
+        <span className="tabular-nums font-medium text-text-primary">{meter.percent}%</span>
       </div>
     </div>
   );

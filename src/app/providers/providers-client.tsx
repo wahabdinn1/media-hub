@@ -249,15 +249,20 @@ function ProviderAdapterPlate({
 
   return (
     <section className="dusk-plate overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-lg font-medium text-text-primary">{adapter.displayName}</h2>
-            <ProviderBadge providerKey={adapter.key} isDefault={connection?.isDefault} />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 px-6 py-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-subtle font-display text-sm font-semibold text-violet">
+            {adapter.displayName.slice(0, 2)}
           </div>
-          <div className="tabular-nums text-xs text-text-secondary">
-            <code className="font-mono">{adapter.pinnedApiHost ?? "No external host"}</code>,
-            descriptor v{cap.version}
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-base font-semibold text-text-primary">{adapter.displayName}</h2>
+              <ProviderBadge providerKey={adapter.key} isDefault={connection?.isDefault} />
+            </div>
+            <div className="tabular-nums text-xs text-text-secondary">
+              <code className="font-mono">{adapter.pinnedApiHost ?? "No external host"}</code>,
+              descriptor v{cap.version}
+            </div>
           </div>
         </div>
 
@@ -272,7 +277,7 @@ function ProviderAdapterPlate({
         )}
       </div>
 
-      <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-12 lg:divide-x lg:divide-y-0">
+      <div className="grid grid-cols-1 divide-y divide-border/80 lg:grid-cols-12 lg:divide-x lg:divide-y-0">
         {/* Left 7 cols: Account telemetry + credential controls */}
         <div className="space-y-5 p-6 lg:col-span-7">
           {feedback ? (
@@ -295,7 +300,7 @@ function ProviderAdapterPlate({
 
           {connection && !rotating ? (
             <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-bg/50 px-4 py-3 text-xs">
                 <div className="flex items-center gap-2 font-medium text-text-primary">
                   <ShieldCheck className="h-4 w-4 text-success" />
                   <span>Encrypted credential stored (key v{connection.keyVersion})</span>
@@ -304,24 +309,24 @@ function ProviderAdapterPlate({
               </div>
 
               {connection.accountInfo ? (
-                <dl className="grid grid-cols-2 gap-4 border-y border-border/70 py-4 text-xs sm:grid-cols-3">
-                  <div>
+                <dl className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
+                  <div className="rounded-xl border border-border/70 bg-surface-raised/40 p-3.5">
                     <dt className="text-text-secondary">Account</dt>
-                    <dd className="mt-1 truncate text-sm font-medium text-text-primary">
+                    <dd className="mt-1 truncate text-sm font-semibold text-text-primary">
                       {connection.accountInfo.accountLabel}
                     </dd>
                   </div>
-                  <div>
+                  <div className="rounded-xl border border-border/70 bg-surface-raised/40 p-3.5">
                     <dt className="text-text-secondary">Videos</dt>
-                    <dd className="mt-1 tabular-nums text-sm font-medium text-text-primary">
+                    <dd className="mt-1 tabular-nums text-sm font-semibold text-text-primary">
                       {connection.accountInfo.videoCount !== undefined
                         ? new Intl.NumberFormat("en-US").format(connection.accountInfo.videoCount)
                         : "None"}
                     </dd>
                   </div>
-                  <div>
+                  <div className="rounded-xl border border-border/70 bg-surface-raised/40 p-3.5">
                     <dt className="text-text-secondary">Storage used</dt>
-                    <dd className="mt-1 tabular-nums text-sm font-medium text-text-primary">
+                    <dd className="mt-1 tabular-nums text-sm font-semibold text-text-primary">
                       {formatBytes(connection.accountInfo.storageUsedBytes)}
                     </dd>
                   </div>

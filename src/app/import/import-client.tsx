@@ -127,56 +127,67 @@ export function ImportClient() {
   ];
 
   return (
-    <div className="space-y-8">
-      <PageHeader title={t.importPage.title} subtitle={t.importPage.subtitle} />
+    <div className="space-y-6">
+      <PageHeader
+        title={t.importPage.title}
+        subtitle={t.importPage.subtitle}
+        actions={
+          <nav
+            aria-label="Import modes"
+            className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-surface p-1 text-xs"
+          >
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              if (tab.disabled) {
+                return (
+                  <span
+                    key={tab.key}
+                    title={t.importPage.cloudDisabledReason}
+                    className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium text-text-secondary/50"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {tab.label}
+                  </span>
+                );
+              }
 
-      {/* Dusk Ruled Dot-Tabs */}
-      <nav aria-label="Import modes" className="flex flex-wrap items-center gap-6 border-b border-border text-sm">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          if (tab.disabled) {
-            return (
-              <span
-                key={tab.key}
-                title={t.importPage.cloudDisabledReason}
-                className="inline-flex cursor-not-allowed items-center gap-2 border-b-2 border-transparent pb-3 text-text-secondary/50"
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-                {tab.label}
-              </span>
-            );
-          }
-
-          const isActive = activeTab === tab.key;
-          return (
-            <Link
-              key={tab.key}
-              href={`/import?tab=${tab.key}`}
-              className={cn(
-                "inline-flex items-center gap-2 border-b-2 pb-3 font-medium whitespace-nowrap transition-colors",
-                isActive
-                  ? "border-primary text-text-primary"
-                  : "border-transparent text-text-secondary hover:text-text-primary",
-              )}
-            >
-              {isActive ? (
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              ) : (
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              {tab.label}
-            </Link>
-          );
-        })}
-      </nav>
+              const isActive = activeTab === tab.key;
+              return (
+                <Link
+                  key={tab.key}
+                  href={`/import?tab=${tab.key}`}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium whitespace-nowrap transition-colors",
+                    isActive
+                      ? "bg-primary-subtle text-primary"
+                      : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </nav>
+        }
+      />
 
       {activeTab === "url" ? (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-7">
-            <div className="space-y-2">
-              <label htmlFor="direct-url-input" className="block text-sm font-medium text-text-primary">
-                Direct media URL
-              </label>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <section className="dusk-plate space-y-6 p-6 lg:col-span-7">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary">
+                <Link2 className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-text-primary">Direct media URL</h2>
+                <p className="text-xs text-text-secondary">
+                  Validate a direct video file URL before dispatching tracked upload jobs.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
               <div className="flex flex-col gap-2.5 sm:flex-row">
                 <input
                   id="direct-url-input"
@@ -189,7 +200,7 @@ export function ImportClient() {
                     setErrorMsg(null);
                   }}
                   placeholder={t.importPage.urlPlaceholder}
-                  className="h-10 flex-1 rounded-lg border border-border bg-surface px-3.5 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                  className="h-10 flex-1 rounded-xl border border-border bg-bg px-3.5 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
                 />
                 <button
                   type="button"
@@ -203,10 +214,10 @@ export function ImportClient() {
                   {t.importPage.validateButton}
                 </button>
               </div>
-              <p className="flex items-start gap-2 pt-1 text-xs text-text-secondary">
-                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+              <div className="flex items-start gap-2.5 rounded-xl border border-border/70 bg-bg/50 px-3.5 py-2.5 text-xs text-text-secondary">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                 <span>{t.importPage.rightsNotice}</span>
-              </p>
+              </div>
             </div>
 
             {validation ? (
@@ -246,7 +257,7 @@ export function ImportClient() {
             ) : null}
 
             {validation?.valid ? (
-              <div className="space-y-4 border-t border-border pt-5">
+              <div className="space-y-4 border-t border-border/80 pt-5">
                 <div className="space-y-1.5">
                   <label htmlFor="import-title-input" className="block text-xs font-medium text-text-primary">
                     Title (optional)
@@ -257,11 +268,11 @@ export function ImportClient() {
                     value={titleOverride}
                     onChange={(e) => setTitleOverride(e.target.value)}
                     placeholder="Asset title"
-                    className="h-10 w-full rounded-lg border border-border bg-surface px-3.5 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+                    className="h-10 w-full rounded-xl border border-border bg-bg px-3.5 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
                   />
                 </div>
 
-                <label className="flex items-start gap-2.5 text-xs text-text-secondary">
+                <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border/70 bg-bg/45 px-3.5 py-3 text-xs text-text-secondary">
                   <input
                     type="checkbox"
                     checked={rightsConfirmed}
@@ -303,8 +314,8 @@ export function ImportClient() {
             ) : null}
 
             {createdResult ? (
-              <div className="dusk-well space-y-2.5 p-4 text-xs text-text-primary">
-                <div className="font-semibold">
+              <div className="space-y-2.5 rounded-xl border border-success/30 bg-success-subtle/40 p-4 text-xs text-text-primary">
+                <div className="font-semibold text-success">
                   {createdResult.deduplicated
                     ? "Existing import job reused (idempotency guard)"
                     : "Import job created"}
@@ -342,7 +353,7 @@ export function ImportClient() {
                 </div>
               </div>
             ) : null}
-          </div>
+          </section>
 
           <div className="lg:col-span-5">
             <DestinationSelector value={destination} onChange={setDestination} />

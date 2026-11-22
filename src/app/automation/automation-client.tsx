@@ -496,42 +496,54 @@ export function AutomationClient() {
         />
       ) : null}
 
-      {/* Dusk Ruled Operational List — replaces generic card grid */}
+      {/* Midnight Bento Workflow Cards */}
       {workflows.length > 0 ? (
-        <div className="divide-y divide-border border-y border-border">
+        <div className="grid grid-cols-1 gap-4">
           {workflows.map((wf) => (
             <article
               key={wf.id}
-              className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between"
+              className="dusk-plate flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between"
             >
-              <div className="min-w-0 space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <Link
-                    href={`/automation/${wf.id}`}
-                    className="text-base font-medium text-text-primary hover:text-primary"
-                  >
-                    {wf.name}
-                  </Link>
-                  <StatusBadge
-                    label={wf.enabled ? "Enabled" : "Paused"}
-                    tone={wf.enabled ? "success" : "neutral"}
-                    dot
-                  />
+              <div className="flex min-w-0 items-start gap-3.5">
+                <div
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                    wf.enabled
+                      ? "bg-violet-subtle text-violet"
+                      : "bg-surface-raised text-text-secondary",
+                  )}
+                >
+                  <Workflow className="h-5 w-5" aria-hidden="true" />
                 </div>
-                {wf.description ? (
-                  <p className="text-xs text-text-secondary">{wf.description}</p>
-                ) : null}
-                <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5" />
-                    {triggerLabel(wf.triggerType)}
-                  </span>
-                  <span className="tabular-nums">{wf.steps.length} step(s)</span>
-                  {wf.lastRunAt ? (
-                    <span className="tabular-nums">
-                      Last run: {new Date(wf.lastRunAt).toLocaleString()}
-                    </span>
+                <div className="min-w-0 space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Link
+                      href={`/automation/${wf.id}`}
+                      className="text-base font-semibold text-text-primary hover:text-primary"
+                    >
+                      {wf.name}
+                    </Link>
+                    <StatusBadge
+                      label={wf.enabled ? "Enabled" : "Paused"}
+                      tone={wf.enabled ? "success" : "neutral"}
+                      dot
+                    />
+                  </div>
+                  {wf.description ? (
+                    <p className="text-xs text-text-secondary">{wf.description}</p>
                   ) : null}
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      {triggerLabel(wf.triggerType)}
+                    </span>
+                    <span className="tabular-nums">{wf.steps.length} step(s)</span>
+                    {wf.lastRunAt ? (
+                      <span className="tabular-nums">
+                        Last run: {new Date(wf.lastRunAt).toLocaleString()}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 

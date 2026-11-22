@@ -166,9 +166,9 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         </div>
       ) : null}
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-medium text-text-primary">Structured step sequence</h2>
+      <section className="dusk-plate overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/80 px-5 py-4">
+          <h2 className="text-base font-semibold text-text-primary">Structured step sequence</h2>
           {workflow.nextRunAt ? (
             <span className="inline-flex items-center gap-1.5 tabular-nums text-xs text-text-secondary">
               <Clock className="h-3.5 w-3.5" />
@@ -176,11 +176,14 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
             </span>
           ) : null}
         </div>
-        <ol className="divide-y divide-border/70 border-y border-border">
+        <ol className="divide-y divide-border/70 px-5">
           {workflow.steps.map((step, i) => (
-            <li key={step.id} className="flex items-center justify-between py-3 text-xs">
-              <span className="font-mono text-text-primary">
-                {i + 1}. {step.type}
+            <li key={step.id} className="flex items-center justify-between py-3.5 text-xs">
+              <span className="flex items-center gap-2.5 font-mono text-text-primary">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-subtle font-sans text-xs font-semibold tabular-nums text-primary">
+                  {i + 1}
+                </span>
+                {step.type}
               </span>
               <span className="font-mono text-text-secondary">
                 {step.type === "sync_provider"
@@ -194,14 +197,16 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         </ol>
       </section>
 
-      <section className="space-y-3 border-t border-border pt-6">
-        <h2 className="text-base font-medium text-text-primary">Run history ({runs.length})</h2>
+      <section className="dusk-plate overflow-hidden">
+        <div className="border-b border-border/80 px-5 py-4">
+          <h2 className="text-base font-semibold text-text-primary">Run history ({runs.length})</h2>
+        </div>
         {runs.length === 0 ? (
-          <p className="text-xs text-text-secondary">
+          <p className="px-5 py-6 text-xs text-text-secondary">
             No executions recorded yet. Click &ldquo;Run now&rdquo; to execute this workflow.
           </p>
         ) : (
-          <div className="divide-y divide-border border-y border-border">
+          <div className="divide-y divide-border/70 px-5">
             {runs.map((run) => (
               <div key={run.id} className="space-y-2.5 py-4 text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -233,7 +238,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
                 ) : null}
 
                 {run.stepResults.length > 0 ? (
-                  <ul className="space-y-1.5 pl-2">
+                  <ul className="space-y-1.5 rounded-xl border border-border/70 bg-bg/45 p-3">
                     {run.stepResults.map((sr) => (
                       <li
                         key={`${run.id}-${sr.stepId}`}

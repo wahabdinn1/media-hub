@@ -176,35 +176,48 @@ export function JobDetailClient({ jobId }: { jobId: string }) {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="space-y-2.5">
-          <h2 className="text-sm font-medium text-text-primary">Redacted payload</h2>
-          <pre className="dusk-well overflow-x-auto p-4 font-mono text-xs text-text-primary">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <section className="dusk-plate space-y-3 p-5">
+          <h2 className="text-sm font-semibold text-text-primary">Redacted payload</h2>
+          <pre className="overflow-x-auto rounded-xl border border-border/70 bg-bg/60 p-4 font-mono text-xs text-text-primary">
             {job.payloadJson}
           </pre>
         </section>
 
-        <section className="space-y-2.5">
-          <h2 className="text-sm font-medium text-text-primary">Result summary</h2>
-          <pre className="dusk-well overflow-x-auto p-4 font-mono text-xs text-text-primary">
+        <section className="dusk-plate space-y-3 p-5">
+          <h2 className="text-sm font-semibold text-text-primary">Result summary</h2>
+          <pre className="overflow-x-auto rounded-xl border border-border/70 bg-bg/60 p-4 font-mono text-xs text-text-primary">
             {job.resultJson ?? "{}"}
           </pre>
         </section>
       </div>
 
-      <section className="space-y-3 border-t border-border pt-6">
-        <h2 className="text-base font-medium text-text-primary">Event timeline</h2>
-        <ol className="divide-y divide-border/70 border-y border-border">
-          {events.map((ev) => (
+      <section className="dusk-plate overflow-hidden">
+        <div className="border-b border-border/80 px-5 py-4">
+          <h2 className="text-base font-semibold text-text-primary">
+            Event timeline ({events.length})
+          </h2>
+        </div>
+        <ol className="divide-y divide-border/70 px-5">
+          {events.map((ev, idx) => (
             <li
               key={ev.id}
-              className="flex flex-col gap-1 py-3.5 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-1.5 py-3.5 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="space-y-0.5">
-                <div className="font-mono text-xs font-medium text-text-primary">
-                  {ev.eventType}
+              <div className="flex items-start gap-3">
+                <span
+                  className={
+                    idx % 2 === 0
+                      ? "mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary"
+                      : "mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-info"
+                  }
+                />
+                <div className="space-y-0.5">
+                  <div className="font-mono text-xs font-medium text-text-primary">
+                    {ev.eventType}
+                  </div>
+                  <p className="text-xs text-text-secondary">{ev.message}</p>
                 </div>
-                <p className="text-xs text-text-secondary">{ev.message}</p>
               </div>
               <span className="shrink-0 tabular-nums text-xs text-text-secondary">
                 {new Date(ev.createdAt).toLocaleString()}

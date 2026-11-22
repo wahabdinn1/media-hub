@@ -15,12 +15,16 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("dusk-well flex flex-col items-start gap-3 px-6 py-8 sm:px-8", className)}>
-      <div className="flex items-center gap-2.5 text-text-primary">
-        <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-        <h2 className="text-base font-medium text-text-primary">{title}</h2>
+    <div className={cn("dusk-plate flex flex-col items-start gap-4 p-6 sm:p-8", className)}>
+      <div className="flex items-center gap-3.5">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-text-primary">{title}</h2>
+          <p className="mt-1 max-w-xl text-sm leading-relaxed text-text-secondary">{body}</p>
+        </div>
       </div>
-      <p className="max-w-lg text-sm leading-relaxed text-text-secondary">{body}</p>
       {action ? <div className="flex flex-wrap items-center gap-2.5 pt-1">{action}</div> : null}
     </div>
   );

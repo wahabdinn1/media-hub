@@ -189,81 +189,83 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
         }
       />
 
-      <div className="space-y-2">
+      <section className="dusk-plate space-y-2.5 p-5">
         <div className="flex justify-between text-xs text-text-secondary">
-          <span>Batch completion</span>
-          <span className="tabular-nums font-medium text-text-primary">{pct}%</span>
+          <span className="font-medium text-text-primary">Batch completion</span>
+          <span className="tabular-nums font-semibold text-text-primary">{pct}%</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
           <div
             className="h-full w-full origin-left rounded-full bg-primary transition-transform duration-200"
             style={{ transform: `scaleX(${pct / 100})` }}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-border text-xs text-text-secondary">
-              <th className="py-3 pr-4 font-medium whitespace-nowrap">Item</th>
-              <th className="py-3 pr-4 font-medium whitespace-nowrap">Status</th>
-              <th className="py-3 pr-4 font-medium whitespace-nowrap">Error</th>
-              <th className="py-3 font-medium whitespace-nowrap">Links</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/70">
-            {jobs.map((job) => {
-              let payload: { title?: string; redactedUrl?: string } = {};
-              let result: { assetId?: string } = {};
-              try {
-                payload = JSON.parse(job.payloadJson) as { title?: string; redactedUrl?: string };
-              } catch {}
-              try {
-                result = job.resultJson ? (JSON.parse(job.resultJson) as { assetId?: string }) : {};
-              } catch {}
+      <section className="dusk-plate overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-border/80 bg-surface-raised/35 text-xs text-text-secondary">
+                <th className="px-5 py-3 font-medium whitespace-nowrap">Item</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Status</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Error</th>
+                <th className="px-5 py-3 font-medium whitespace-nowrap">Links</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/70">
+              {jobs.map((job) => {
+                let payload: { title?: string; redactedUrl?: string } = {};
+                let result: { assetId?: string } = {};
+                try {
+                  payload = JSON.parse(job.payloadJson) as { title?: string; redactedUrl?: string };
+                } catch {}
+                try {
+                  result = job.resultJson ? (JSON.parse(job.resultJson) as { assetId?: string }) : {};
+                } catch {}
 
-              return (
-                <tr key={job.id} className="transition-colors hover:bg-surface/60">
-                  <td className="py-3.5 pr-4">
-                    <div className="text-xs font-medium text-text-primary">
-                      {payload.title || "Imported video"}
-                    </div>
-                    <div className="font-mono text-xs text-text-secondary">
-                      {payload.redactedUrl ?? job.id.slice(0, 12)}
-                    </div>
-                  </td>
-                  <td className="py-3.5 pr-4">
-                    <StatusBadge
-                      label={t.statuses.job[job.status as JobStatus] ?? job.status}
-                      tone={statusTone(job.status)}
-                      dot
-                    />
-                  </td>
-                  <td className="py-3.5 pr-4 font-mono text-xs text-danger">
-                    {job.errorCode ?? "None"}
-                  </td>
-                  <td className="py-3.5">
-                    <div className="flex items-center gap-3 text-xs font-medium">
-                      <Link href={`/jobs/${job.id}`} className="text-primary hover:underline">
-                        Job
-                      </Link>
-                      {result.assetId ? (
-                        <Link
-                          href={`/library/${result.assetId}`}
-                          className="text-primary hover:underline"
-                        >
-                          Asset
+                return (
+                  <tr key={job.id} className="transition-colors hover:bg-surface-raised/35">
+                    <td className="px-5 py-3.5">
+                      <div className="text-xs font-medium text-text-primary">
+                        {payload.title || "Imported video"}
+                      </div>
+                      <div className="font-mono text-xs text-text-secondary">
+                        {payload.redactedUrl ?? job.id.slice(0, 12)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge
+                        label={t.statuses.job[job.status as JobStatus] ?? job.status}
+                        tone={statusTone(job.status)}
+                        dot
+                      />
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-xs text-danger">
+                      {job.errorCode ?? "None"}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3 text-xs font-medium">
+                        <Link href={`/jobs/${job.id}`} className="text-primary hover:underline">
+                          Job
                         </Link>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                        {result.assetId ? (
+                          <Link
+                            href={`/library/${result.assetId}`}
+                            className="text-primary hover:underline"
+                          >
+                            Asset
+                          </Link>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

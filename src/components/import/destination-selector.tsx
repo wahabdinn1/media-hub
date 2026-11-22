@@ -125,11 +125,16 @@ export function DestinationSelector({
   }
 
   return (
-    <aside className="dusk-plate space-y-5 p-5">
+    <aside className="dusk-plate space-y-5 p-6">
       <div className="space-y-3">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-sm font-medium text-text-primary">Target providers</h2>
-          <span className="tabular-nums text-xs text-text-secondary">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-info-subtle text-info">
+              <Plug className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <h2 className="text-sm font-semibold text-text-primary">Target providers</h2>
+          </div>
+          <span className="rounded-full bg-primary-subtle px-2.5 py-0.5 tabular-nums text-xs font-medium text-primary">
             {value.providerConnectionIds.length} selected
           </span>
         </div>
@@ -139,7 +144,7 @@ export function DestinationSelector({
         </p>
 
         {uploadCapableConns.length === 0 ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning-subtle px-3 py-2.5 text-xs text-warning">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-warning-subtle px-3.5 py-3 text-xs text-warning">
             <span>No active provider connection ready for URL import.</span>
             <Link href="/providers" className="inline-flex items-center gap-1 font-medium underline">
               <Plug className="h-3.5 w-3.5" />
@@ -147,7 +152,7 @@ export function DestinationSelector({
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-border/70 border-y border-border/70">
+          <div className="space-y-2.5">
             {uploadCapableConns.map((conn) => {
               const selected = value.providerConnectionIds.includes(conn.id);
               const adapter = adapterMap.get(conn.providerKey);
@@ -158,7 +163,15 @@ export function DestinationSelector({
               const activeFolder = value.folderByConnectionId[conn.id] ?? null;
 
               return (
-                <div key={conn.id} className="space-y-3 py-3">
+                <div
+                  key={conn.id}
+                  className={cn(
+                    "space-y-3 rounded-xl border p-3.5 transition-colors",
+                    selected
+                      ? "border-primary/40 bg-primary-subtle/20"
+                      : "border-border/70 bg-bg/45",
+                  )}
+                >
                   <button
                     type="button"
                     role="checkbox"
@@ -232,14 +245,16 @@ export function DestinationSelector({
         )}
       </div>
 
-      <div className="space-y-2.5">
-        <div className="flex items-baseline justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-sm font-medium text-text-primary">
-            <Layers className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-            <span>Collections</span>
+      <div className="space-y-3 border-t border-border/80 pt-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-subtle text-violet">
+              <Layers className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <span className="text-sm font-semibold text-text-primary">Collections</span>
           </div>
           {value.collectionIds.length > 0 ? (
-            <span className="tabular-nums text-xs text-primary">
+            <span className="rounded-full bg-violet-subtle px-2.5 py-0.5 tabular-nums text-xs font-medium text-violet">
               {value.collectionIds.length} selected
             </span>
           ) : (

@@ -129,16 +129,21 @@ export function BulkImportPanel() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-7">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base font-medium text-text-primary">Paste URLs or upload CSV</h2>
-              <p className="mt-0.5 text-xs text-text-secondary">
-                One URL per line, or CSV with <code className="font-mono">url,title,provider</code>.
-                Dry-run runs before any job is created.
-              </p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <section className="dusk-plate space-y-4 p-6 lg:col-span-7">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-subtle text-violet">
+                <FileSpreadsheet className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-text-primary">Paste URLs or upload CSV</h2>
+                <p className="text-xs text-text-secondary">
+                  One URL per line, or CSV with <code className="font-mono">url,title,provider</code>.
+                  Dry-run validates rows before any job is created.
+                </p>
+              </div>
             </div>
 
             <label className="dusk-btn-ghost h-8 cursor-pointer px-3 text-xs">
@@ -165,7 +170,7 @@ export function BulkImportPanel() {
             placeholder={
               "url,title\nhttps://cdn.example.com/clip-1.mp4,Clip 1\nhttps://cdn.example.com/clip-2.mp4,Clip 2"
             }
-            className="w-full rounded-xl border border-border bg-surface p-3.5 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+            className="w-full rounded-xl border border-border bg-bg p-3.5 font-mono text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
           />
 
           <div className="flex flex-wrap items-center gap-3">
@@ -190,7 +195,7 @@ export function BulkImportPanel() {
               <span>{errorMsg}</span>
             </div>
           ) : null}
-        </div>
+        </section>
 
         <div className="lg:col-span-5">
           <DestinationSelector value={destination} onChange={setDestination} />
@@ -198,9 +203,9 @@ export function BulkImportPanel() {
       </div>
 
       {dryRun ? (
-        <section className="space-y-4 border-t border-border pt-6">
+        <section className="dusk-plate space-y-4 p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-medium text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               Dry-run preview ({dryRun.preview.total} rows)
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -217,7 +222,7 @@ export function BulkImportPanel() {
 
           <div
             ref={scrollParentRef}
-            className="max-h-80 overflow-y-auto border-y border-border"
+            className="max-h-80 overflow-y-auto rounded-xl border border-border/80 bg-bg/45"
           >
             <div
               style={{
