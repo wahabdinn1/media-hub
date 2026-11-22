@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MediaHub local runtime & Cloudflare build artifacts
+.data/
+.open-next/
+.wrangler/

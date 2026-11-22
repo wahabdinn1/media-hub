@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mediahub",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-05-01",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "mediahub"
+    }
+  ],
+  "triggers": {
+    // PRD 14.5: Single shared per-minute cron tick (Cloudflare Free allows 5 crons total)
+    "crons": ["* * * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mediahub-db",
+      "database_id": "95ed77be-9dc8-43e4-952e-15f04edc50d5",
+      "migrations_dir": "drizzle"
+    }
+  ]
+  // R2 (Phase 5) and Queues (Phase 4) are added once enabled/needed to guarantee $0 operation:
+  // "r2_buckets": [{ "binding": "MEDIA_BUCKET", "bucket_name": "mediahub-storage" }],
+  // "queues": {
+  //   "producers": [{ "binding": "JOB_QUEUE", "queue": "mediahub-jobs" }],
+  //   "consumers": [{ "queue": "mediahub-jobs", "max_batch_size": 10, "max_retries": 3, "dead_letter_queue": "mediahub-jobs-dlq" }]
+  // }
+}
