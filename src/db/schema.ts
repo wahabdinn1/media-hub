@@ -98,6 +98,26 @@ export const assetLocations = sqliteTable(
   ],
 );
 
+export const providerFolders = sqliteTable(
+  "provider_folders",
+  {
+    id: text("id").primaryKey(),
+    providerConnectionId: text("provider_connection_id")
+      .notNull()
+      .references(() => providerConnections.id, { onDelete: "cascade" }),
+    externalId: text("external_id").notNull(),
+    name: text("name").notNull(),
+    parentExternalId: text("parent_external_id"),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_provider_folders_conn_ext").on(
+      table.providerConnectionId,
+      table.externalId,
+    ),
+  ],
+);
+
 export const thumbnails = sqliteTable(
   "thumbnails",
   {

@@ -15,6 +15,7 @@ import {
   thumbnails,
 } from "../schema";
 import { incrementUsageCounter } from "./usage";
+import { syncConnectionFolders } from "./folders";
 
 export interface AssetListItem {
   id: string;
@@ -43,6 +44,7 @@ export interface SyncSummary {
   unchanged: number;
   removedMarked: number;
   dmcaMarked: number;
+  foldersSynced: number;
 }
 
 async function computeContentHash(item: NormalizedProviderAsset): Promise<string> {
@@ -87,6 +89,7 @@ export async function syncProviderCatalog(
     unchanged: 0,
     removedMarked: 0,
     dmcaMarked: 0,
+    foldersSynced: 0,
   };
 
   let nextPage: number | undefined = 1;
@@ -258,6 +261,18 @@ export async function syncProviderCatalog(
       }
     } catch {
       // Non-fatal
+    }
+  }
+
+  // Sync provider folders when adapter declares folder support (PRD VID-09)
+  if (params.adapter.meta.capabilities.folders !== "none" && params.adapter.listFolders) {
+    try {
+      const remoteFolders = await params.adapter.listFolders(params.credentials);
+      const folderRes = await syncConnectionFolders(db, params.connectionId, remoteFolders);
+      summary.foldersSynced = folderRes.synced;
+      writesCount += folderRes.writes;
+    } catch {
+      // Non-fatal: folder sync should not fail asset sync
     }
   }
 

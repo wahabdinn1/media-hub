@@ -94,6 +94,16 @@ const BOOTSTRAP_STATEMENTS = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_asset_locations_conn_ext
     ON asset_locations (provider_connection_id, external_id);`,
   `CREATE INDEX IF NOT EXISTS idx_asset_locations_asset ON asset_locations (asset_id);`,
+  `CREATE TABLE IF NOT EXISTS provider_folders (
+    id TEXT PRIMARY KEY NOT NULL,
+    provider_connection_id TEXT NOT NULL REFERENCES provider_connections(id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    parent_external_id TEXT,
+    updated_at TEXT NOT NULL
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_provider_folders_conn_ext
+    ON provider_folders (provider_connection_id, external_id);`,
   `CREATE TABLE IF NOT EXISTS thumbnails (
     id TEXT PRIMARY KEY NOT NULL,
     asset_id TEXT NOT NULL REFERENCES assets(id) ON DELETE CASCADE,

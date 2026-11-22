@@ -7,13 +7,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
   Film,
+  Folder,
   FolderKanban,
+  FolderPlus,
   Grid2X2,
   List,
   Loader2,
   Plug,
   RefreshCw,
   Search,
+  Trash2,
   Upload,
   XCircle,
 } from "lucide-react";
@@ -50,6 +53,16 @@ interface AssetsListResponse {
   pageSize: number;
 }
 
+interface ProviderFolderItem {
+  id: string;
+  providerConnectionId: string;
+  providerKey: string;
+  externalId: string;
+  name: string;
+  parentExternalId: string | null;
+  updatedAt: string;
+}
+
 function assetStatusTone(status: CanonicalAssetStatus): BadgeTone {
   switch (status) {
     case "active":
@@ -84,6 +97,9 @@ export function LibraryClient() {
 
   const [searchInput, setSearchInput] = useState(qParam);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [newFolderName, setNewFolderName] = useState("");
+  const [showNewFolder, setShowNewFolder] = useState(false);
+  const [confirmDeleteFolderId, setConfirmDeleteFolderId] = useState<string | null>(null);
   const [syncNotice, setSyncNotice] = useState<{ kind: "success" | "error"; text: string } | null>(
     null,
   );
@@ -105,6 +121,15 @@ export function LibraryClient() {
     },
   });
 
+  const { data: foldersData } = useQuery<{ folders: ProviderFolderItem[] }>({
+    queryKey: ["provider-folders"],
+    queryFn: async () => {
+      const res = await fetch("/api/folders");
+      if (!res.ok) return { folders: [] };
+      return res.json();
+    },
+  });
+
   const syncMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch("/api/assets/sync", {
@@ -113,7 +138,12 @@ export function LibraryClient() {
       });
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
-        summary?: { created: number; updated: number; unchanged: number };
+        summary?: {
+          created: number;
+          updated: number;
+          unchanged: number;
+          foldersSynced: number;
+        };
       };
       if (!res.ok) throw new Error(json.error ?? "Sync failed");
       return json;
@@ -123,10 +153,11 @@ export function LibraryClient() {
       setSyncNotice({
         kind: "success",
         text: s
-          ? `Sync finished: ${s.created} added, ${s.updated} updated, ${s.unchanged} unchanged.`
+          ? `Sync finished: ${s.created} added, ${s.updated} updated, ${s.unchanged} unchanged, ${s.foldersSynced} folder(s) synced.`
           : "Sync completed.",
       });
       void queryClient.invalidateQueries({ queryKey: ["assets"] });
+      void queryClient.invalidateQueries({ queryKey: ["provider-folders"] });
       void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       void queryClient.invalidateQueries({ queryKey: ["jobs"] });
     },
@@ -134,6 +165,54 @@ export function LibraryClient() {
       setSyncNotice({
         kind: "error",
         text: err instanceof Error ? err.message : "Sync failed.",
+      });
+    },
+  });
+
+  const createFolderMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await fetch("/api/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to create folder");
+      return json;
+    },
+    onSuccess: () => {
+      setNewFolderName("");
+      setShowNewFolder(false);
+      setSyncNotice({ kind: "success", text: "Provider folder created." });
+      void queryClient.invalidateQueries({ queryKey: ["provider-folders"] });
+    },
+    onError: (err) => {
+      setSyncNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Failed to create folder.",
+      });
+    },
+  });
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (folderId: string) => {
+      const res = await fetch(`/api/folders/${folderId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(json.error ?? "Failed to delete folder");
+      }
+    },
+    onSuccess: () => {
+      setSyncNotice({
+        kind: "success",
+        text: "Folder deleted at provider. Videos inside were kept and moved to root.",
+      });
+      void queryClient.invalidateQueries({ queryKey: ["provider-folders"] });
+    },
+    onError: (err) => {
+      setSyncNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Failed to delete folder.",
       });
     },
   });
@@ -159,6 +238,7 @@ export function LibraryClient() {
   }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+  const folders = foldersData?.folders ?? [];
 
   const filters: Array<{ key: string; label: string }> = [
     { key: "all", label: t.library.filterAll },
@@ -221,6 +301,102 @@ export function LibraryClient() {
           <span>{syncNotice.text}</span>
         </div>
       ) : null}
+
+      <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-semibold text-text-primary">Provider folders</h2>
+            <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
+              {folders.length}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNewFolder((v) => !v)}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
+          >
+            <FolderPlus className="h-3.5 w-3.5" />
+            New folder
+          </button>
+        </div>
+
+        {showNewFolder ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newFolderName.trim()) {
+                createFolderMutation.mutate(newFolderName.trim());
+              }
+            }}
+            className="flex flex-wrap items-center gap-2 pt-1"
+          >
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Folder name..."
+              className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!newFolderName.trim() || createFolderMutation.isPending}
+              className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+            >
+              {createFolderMutation.isPending ? "Creating..." : "Create"}
+            </button>
+          </form>
+        ) : null}
+
+        {folders.length > 0 ? (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {folders.map((folder) => (
+              <div
+                key={folder.id}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5 text-xs"
+              >
+                <Folder className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium text-text-primary">{folder.name}</span>
+                <ProviderBadge providerKey={folder.providerKey} />
+                {confirmDeleteFolderId === folder.id ? (
+                  <span className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmDeleteFolderId(null);
+                        deleteFolderMutation.mutate(folder.id);
+                      }}
+                      disabled={deleteFolderMutation.isPending}
+                      className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteFolderId(null)}
+                      className="text-[11px] text-text-secondary hover:text-text-primary"
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    title="Delete folder (videos move to root)"
+                    onClick={() => setConfirmDeleteFolderId(folder.id)}
+                    className="text-text-secondary hover:text-danger"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-text-secondary">
+            No provider folders synced yet. Click &ldquo;Sync from provider&rdquo; to load folders from your connected account.
+          </p>
+        )}
+      </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-1.5">

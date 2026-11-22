@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         status: "completed",
         finished: true,
         result: { ...summary },
-        eventMessage: `Sync completed: ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged.`,
+        eventMessage: `Sync completed: ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged, ${summary.foldersSynced} folder(s) synced.`,
         eventData: { ...summary },
       });
 

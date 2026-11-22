@@ -1,4 +1,5 @@
-const SENSITIVE_KEY_PATTERN = /(key|token|secret|auth|signature|sig|pass|credential|cookie)/i;
+const SAFE_KEY_NAMES = new Set(["providerKey", "moduleKey", "idempotencyKey", "keyVersion"]);
+const SENSITIVE_KEY_PATTERN = /(api.?key|token|secret|auth|signature|sig|pass|credential|cookie|^key$)/i;
 
 export function redactUrl(rawUrl: string): string {
   try {
@@ -32,7 +33,7 @@ export function redactRecord<T>(value: T): T {
   if (value !== null && typeof value === "object") {
     const output: Record<string, unknown> = {};
     for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
-      if (SENSITIVE_KEY_PATTERN.test(key)) {
+      if (!SAFE_KEY_NAMES.has(key) && SENSITIVE_KEY_PATTERN.test(key)) {
         output[key] = "[REDACTED]";
       } else {
         output[key] = redactRecord(entry);
