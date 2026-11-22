@@ -19,6 +19,16 @@
 
 ---
 
+## Execution Status Summary (Updated 22 Nov 2026)
+
+- **Hosting Architecture:** Hybrid \$0 stack — Next.js App Router on **Vercel Hobby** (`sin1`, Vercel SSO protection) + **Cloudflare D1 Free** (`mediahub-db`, 18 tables) + **Cloudflare Worker Free** (`mediahub-d1-gateway` with native D1 binding and `* * * * *` cron trigger).
+- **Phase 0–4:** Completed, verified locally and live in production.
+- **Phase 5 (Part 1 — Zero-R2):** Completed (MediaHub Collections, provider rename/move/clone/delete with non-restorable warning, local soft-delete, SSRF-hardened direct image URL custom thumbnails). R2 file staging (`UP-06`) and R2 thumbnail file upload remain optional until Cloudflare R2 is enabled by the owner.
+- **Phase 6:** Completed (Sequential Automation Workflows + shared-tick scheduling, lazy-loaded Recharts Dashboard Analytics + Vidara Stats panel, SRT/VTT Subtitle URL attachment).
+- **Phase 7:** Completed (API auth & UI isolation invariant tests, SSRF matrix tests, secret-free metadata backup export & dry-run/restore workflow in Settings, and `docs/add-a-provider.md`).
+
+---
+
 ## Phase 0 — Foundation, UX Shell, and Workers POC Gate (COMPLETED IN REPO)
 
 **Scope (PRD 12.4, 17):**

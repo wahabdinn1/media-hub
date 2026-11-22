@@ -11,4 +11,5 @@ export * from "./import/subtitle-validator";
 export * from "./import/bulk-parser";
 export * from "./analytics/job-metrics";
 export * from "./automation/workflow-schema";
+export * from "./backup/metadata-backup";
 export * from "./jobs/cron-tick";
