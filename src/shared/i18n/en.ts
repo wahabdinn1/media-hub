@@ -122,9 +122,9 @@ export const enMessages = {
   },
   automation: {
     title: "Automation",
-    subtitle: "Sequential workflows running on the single shared per-minute cron tick (Phase 6 / P2).",
-    emptyTitle: "Workflows scheduled for Phase 6",
-    emptyBody: "Once the job engine and cron budget are verified, structured step-list workflows will run here without a visual canvas.",
+    subtitle: "Sequential workflows running on demand or on the shared per-minute cron tick.",
+    emptyTitle: "No workflows created yet",
+    emptyBody: "Create a structured step-list workflow to sync catalogs, import authorized URLs, or organize collections.",
   },
   providers: {
     title: "Providers",

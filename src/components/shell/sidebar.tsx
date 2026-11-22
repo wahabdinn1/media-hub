@@ -108,8 +108,8 @@ export function Sidebar() {
 
       {!collapsed ? (
         <div className="border-t border-border px-3 py-3 text-[11px] text-text-secondary">
-          <div className="font-mono text-text-primary">v0.1 · Phase 0</div>
-          <div className="mt-0.5 truncate">Cloudflare Free Tier</div>
+          <div className="font-mono text-text-primary">MediaHub v1.0</div>
+          <div className="mt-0.5 truncate">Zero-Cost Hybrid Tier</div>
         </div>
       ) : null}
     </aside>
