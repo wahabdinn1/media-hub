@@ -190,6 +190,39 @@ const BOOTSTRAP_STATEMENTS = [
     created_at TEXT NOT NULL
   );`,
   `CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs (created_at);`,
+  `CREATE TABLE IF NOT EXISTS subtitles (
+    id TEXT PRIMARY KEY NOT NULL,
+    asset_id TEXT NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    provider_connection_id TEXT REFERENCES provider_connections(id),
+    language TEXT NOT NULL,
+    format TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_subtitles_asset_id ON subtitles (asset_id);`,
+  `CREATE TABLE IF NOT EXISTS workflows (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    enabled INTEGER NOT NULL DEFAULT 1,
+    trigger_type TEXT NOT NULL DEFAULT 'manual',
+    steps_json TEXT NOT NULL DEFAULT '[]',
+    last_run_at TEXT,
+    next_run_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS workflow_runs (
+    id TEXT PRIMARY KEY NOT NULL,
+    workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'running',
+    trigger_source TEXT NOT NULL DEFAULT 'manual',
+    step_results_json TEXT NOT NULL DEFAULT '[]',
+    error_message TEXT,
+    started_at TEXT NOT NULL,
+    finished_at TEXT
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_workflow_runs_workflow_started ON workflow_runs (workflow_id, started_at);`,
 ];
 
 const EMPTY_META: LocalD1Meta = {

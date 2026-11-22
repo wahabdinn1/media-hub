@@ -7,5 +7,8 @@ export * from "./crypto/credentials";
 export * from "./auth/access";
 export * from "./import/url-validator";
 export * from "./import/thumbnail-validator";
+export * from "./import/subtitle-validator";
 export * from "./import/bulk-parser";
+export * from "./analytics/job-metrics";
+export * from "./automation/workflow-schema";
 export * from "./jobs/cron-tick";

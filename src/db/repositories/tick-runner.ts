@@ -17,12 +17,14 @@ import { transitionJob, type JobRow } from "./jobs";
 import { decryptConnectionCredentials, getConnectionById } from "./providers";
 import { getPersistedSettings } from "./settings";
 import { getCurrentUsageCounters, incrementUsageCounter } from "./usage";
+import { runDueScheduledWorkflows } from "./workflows";
 
 export interface TickExecutionReport {
   skippedReason?: string;
   dispatched: number;
   polled: number;
   requeuedRetries: number;
+  workflowsExecuted: number;
   prunedJobEvents: number;
   prunedActivityLogs: number;
   deferredCount: number;
@@ -230,6 +232,7 @@ export async function executeBoundedTick(
       dispatched: 0,
       polled: 0,
       requeuedRetries: 0,
+      workflowsExecuted: 0,
       prunedJobEvents: 0,
       prunedActivityLogs: 0,
       deferredCount: 0,
@@ -324,6 +327,11 @@ export async function executeBoundedTick(
     await reconcileBatchStatus(db, batchId);
   }
 
+  let workflowsExecuted = 0;
+  if (!quota.degradeModeActive && !options?.batchId) {
+    workflowsExecuted = await runDueScheduledWorkflows(db, 2);
+  }
+
   let prunedJobEvents = 0;
   let prunedActivityLogs = 0;
 
@@ -372,6 +380,7 @@ export async function executeBoundedTick(
     dispatched: plan.queuedToDispatch.length,
     polled: plan.processingToPoll.length,
     requeuedRetries: plan.retryToRequeue.length,
+    workflowsExecuted,
     prunedJobEvents,
     prunedActivityLogs,
     deferredCount: plan.deferredCount,

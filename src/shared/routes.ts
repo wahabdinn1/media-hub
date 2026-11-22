@@ -58,7 +58,6 @@ export const TOP_NAV_ITEMS: readonly NavItemConfig[] = [
     scope: "workflow.manage",
     mobilePrimary: false,
     moduleKey: "automation",
-    phaseBadge: "P2",
   },
   { key: "providers", href: "/providers", scope: "provider.manage", mobilePrimary: false },
   { key: "settings", href: "/settings", scope: "settings.manage", mobilePrimary: false },

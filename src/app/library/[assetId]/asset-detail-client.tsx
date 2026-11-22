@@ -67,6 +67,13 @@ interface AssetDetailResponse {
     updatedAt: string;
   };
   collections: Array<{ id: string; name: string }>;
+  subtitles?: Array<{
+    id: string;
+    language: string;
+    format: string;
+    sourceUrl: string;
+    createdAt: string;
+  }>;
   locations: AssetLocationView[];
   thumbnails: Array<{
     id: string;
@@ -137,6 +144,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
   const [deleteLocalAlso, setDeleteLocalAlso] = useState(false);
   const [addCollectionId, setAddCollectionId] = useState("");
   const [thumbUrlInput, setThumbUrlInput] = useState("");
+  const [subLangInput, setSubLangInput] = useState("en");
+  const [subFormatInput, setSubFormatInput] = useState<"srt" | "vtt">("vtt");
+  const [subUrlInput, setSubUrlInput] = useState("");
 
   const { data, isLoading, error } = useQuery<AssetDetailResponse>({
     queryKey: ["asset", assetId],
@@ -340,6 +350,34 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
     },
   });
 
+  const attachSubtitleMutation = useMutation({
+    mutationFn: async (payload: { language: string; format: "srt" | "vtt"; subtitleUrl: string }) => {
+      const res = await fetch(`/api/assets/${assetId}/subtitles`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to attach subtitle");
+      return json;
+    },
+    onSuccess: () => {
+      setSubUrlInput("");
+      setActionNotice({
+        kind: "success",
+        text: "Subtitle attached at provider and logged as a completed job.",
+      });
+      void queryClient.invalidateQueries({ queryKey: ["asset", assetId] });
+      void queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (err) => {
+      setActionNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Subtitle attachment failed.",
+      });
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
@@ -378,6 +416,8 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
   const canClone = Boolean(caps && hasCapability(caps, "clone") && canMutateRemote);
   const canDeleteRemote = Boolean(caps && hasCapability(caps, "delete") && canMutateRemote);
   const canThumbUrl = Boolean(caps && hasCapability(caps, "thumbnail.url") && canMutateRemote);
+  const canSubtitles = Boolean(caps && hasCapability(caps, "subtitles") && canMutateRemote);
+  const assetSubtitles = data.subtitles ?? [];
 
   const matchingFolders = (foldersData?.folders ?? []).filter(
     (f) => !primaryLoc || f.providerConnectionId === primaryLoc.providerConnectionId,
@@ -947,11 +987,113 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
       ) : null}
 
       {tab === "subtitles" ? (
-        <EmptyState
-          icon={Subtitles}
-          title="Subtitle attachment activates in Phase 6"
-          body="Attach SRT or VTT subtitles by URL and language as tracked jobs when supported by the provider."
-        />
+        <div className="space-y-4">
+          <section className="space-y-3 rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-sm font-semibold text-text-primary">
+              Attach subtitle track (SRT / VTT)
+            </h2>
+            {canSubtitles ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!subUrlInput.trim() || !subLangInput.trim()) return;
+                  setActionNotice(null);
+                  attachSubtitleMutation.mutate({
+                    language: subLangInput.trim(),
+                    format: subFormatInput,
+                    subtitleUrl: subUrlInput.trim(),
+                  });
+                }}
+                className="space-y-2.5"
+              >
+                <p className="text-xs text-text-secondary">
+                  Provide an authorized direct HTTPS subtitle file URL (.srt or .vtt, max 2 MiB) and language code.
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-6">
+                  <input
+                    type="text"
+                    value={subLangInput}
+                    onChange={(e) => setSubLangInput(e.target.value)}
+                    placeholder="en / id"
+                    required
+                    className="h-9 rounded-lg border border-border bg-bg px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                  />
+                  <select
+                    value={subFormatInput}
+                    onChange={(e) => setSubFormatInput(e.target.value as "srt" | "vtt")}
+                    className="h-9 rounded-lg border border-border bg-bg px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                  >
+                    <option value="vtt">VTT</option>
+                    <option value="srt">SRT</option>
+                  </select>
+                  <input
+                    type="url"
+                    value={subUrlInput}
+                    onChange={(e) => setSubUrlInput(e.target.value)}
+                    placeholder="https://cdn.example.com/subs/video-en.vtt"
+                    required
+                    className="h-9 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none sm:col-span-3"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!subUrlInput.trim() || attachSubtitleMutation.isPending}
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50 sm:col-span-1"
+                  >
+                    {attachSubtitleMutation.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Subtitles className="h-3.5 w-3.5" />
+                    )}
+                    Attach
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <p className="text-xs text-text-secondary">
+                Subtitle attachment is unavailable because{" "}
+                {primaryLoc?.readOnlyReason ??
+                  "this provider does not declare subtitle attachment support."}
+              </p>
+            )}
+          </section>
+
+          {assetSubtitles.length > 0 ? (
+            <div className="rounded-xl border border-border bg-surface p-4">
+              <h3 className="text-xs font-semibold text-text-primary">
+                Attached subtitles ({assetSubtitles.length})
+              </h3>
+              <ul className="mt-2 divide-y divide-border">
+                {assetSubtitles.map((sub) => (
+                  <li key={sub.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge label={sub.language} tone="info" />
+                      <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] uppercase text-text-secondary">
+                        {sub.format}
+                      </span>
+                      <a
+                        href={sub.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="max-w-xs truncate font-mono text-primary hover:underline sm:max-w-md"
+                      >
+                        {sub.sourceUrl}
+                      </a>
+                    </div>
+                    <span className="font-mono text-text-secondary">
+                      {new Date(sub.createdAt).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Subtitles}
+              title="No subtitles attached yet"
+              body="Attach an SRT or VTT subtitle track above to record it at your provider and in MediaHub."
+            />
+          )}
+        </div>
       ) : null}
 
       {tab === "history" ? (

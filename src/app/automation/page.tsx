@@ -1,19 +1,10 @@
-import { Workflow } from "lucide-react";
-import { getMessages } from "@/shared";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Suspense } from "react";
+import { AutomationClient } from "./automation-client";
 
 export default function AutomationPage() {
-  const t = getMessages("en");
-
   return (
-    <div className="space-y-6">
-      <PageHeader title={t.automation.title} subtitle={t.automation.subtitle} />
-      <EmptyState
-        icon={Workflow}
-        title={t.automation.emptyTitle}
-        body={t.automation.emptyBody}
-      />
-    </div>
+    <Suspense fallback={<div className="h-48 rounded-xl border border-border bg-surface" />}>
+      <AutomationClient />
+    </Suspense>
   );
 }

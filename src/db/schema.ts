@@ -241,3 +241,49 @@ export const activityLogs = sqliteTable(
   },
   (table) => [index("idx_activity_logs_created_at").on(table.createdAt)],
 );
+
+export const subtitles = sqliteTable(
+  "subtitles",
+  {
+    id: text("id").primaryKey(),
+    assetId: text("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    providerConnectionId: text("provider_connection_id").references(() => providerConnections.id),
+    language: text("language").notNull(),
+    format: text("format").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("idx_subtitles_asset_id").on(table.assetId)],
+);
+
+export const workflows = sqliteTable("workflows", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  triggerType: text("trigger_type").notNull().default("manual"),
+  stepsJson: text("steps_json").notNull().default("[]"),
+  lastRunAt: text("last_run_at"),
+  nextRunAt: text("next_run_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const workflowRuns = sqliteTable(
+  "workflow_runs",
+  {
+    id: text("id").primaryKey(),
+    workflowId: text("workflow_id")
+      .notNull()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("running"),
+    triggerSource: text("trigger_source").notNull().default("manual"),
+    stepResultsJson: text("step_results_json").notNull().default("[]"),
+    errorMessage: text("error_message"),
+    startedAt: text("started_at").notNull(),
+    finishedAt: text("finished_at"),
+  },
+  (table) => [index("idx_workflow_runs_workflow_started").on(table.workflowId, table.startedAt)],
+);

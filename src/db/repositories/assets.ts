@@ -14,6 +14,7 @@ import {
   collections,
   jobs,
   providerConnections,
+  subtitles,
   thumbnails,
 } from "../schema";
 import { incrementUsageCounter } from "./usage";
@@ -480,32 +481,43 @@ export async function getAssetDetail(db: MediaHubDb, assetId: string) {
     .limit(1);
   if (!rows[0]) return null;
 
-  const [locs, thumbs, conns, relatedActivity, relatedJobs, memberCols] = await Promise.all([
-    db.select().from(assetLocations).where(eq(assetLocations.assetId, assetId)),
-    db.select().from(thumbnails).where(eq(thumbnails.assetId, assetId)).orderBy(desc(thumbnails.createdAt)),
-    db.select().from(providerConnections),
-    db
-      .select()
-      .from(activityLogs)
-      .where(eq(activityLogs.entityId, assetId))
-      .orderBy(desc(activityLogs.createdAt))
-      .limit(30),
-    db.select().from(jobs).orderBy(desc(jobs.createdAt)).limit(20),
-    db
-      .select({
-        id: collections.id,
-        name: collections.name,
-      })
-      .from(collectionAssets)
-      .innerJoin(collections, eq(collectionAssets.collectionId, collections.id))
-      .where(eq(collectionAssets.assetId, assetId)),
-  ]);
+  const [locs, thumbs, conns, relatedActivity, relatedJobs, memberCols, assetSubtitles] =
+    await Promise.all([
+      db.select().from(assetLocations).where(eq(assetLocations.assetId, assetId)),
+      db
+        .select()
+        .from(thumbnails)
+        .where(eq(thumbnails.assetId, assetId))
+        .orderBy(desc(thumbnails.createdAt)),
+      db.select().from(providerConnections),
+      db
+        .select()
+        .from(activityLogs)
+        .where(eq(activityLogs.entityId, assetId))
+        .orderBy(desc(activityLogs.createdAt))
+        .limit(30),
+      db.select().from(jobs).orderBy(desc(jobs.createdAt)).limit(20),
+      db
+        .select({
+          id: collections.id,
+          name: collections.name,
+        })
+        .from(collectionAssets)
+        .innerJoin(collections, eq(collectionAssets.collectionId, collections.id))
+        .where(eq(collectionAssets.assetId, assetId)),
+      db
+        .select()
+        .from(subtitles)
+        .where(eq(subtitles.assetId, assetId))
+        .orderBy(desc(subtitles.createdAt)),
+    ]);
 
   const connMap = new Map(conns.map((c) => [c.id, c]));
 
   return {
     asset: rows[0],
     collections: memberCols,
+    subtitles: assetSubtitles,
     locations: locs.map((loc) => {
       const conn = connMap.get(loc.providerConnectionId);
       let parsedMeta: Record<string, unknown> = {};

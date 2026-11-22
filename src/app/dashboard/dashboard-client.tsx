@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -7,11 +8,11 @@ import {
   Activity,
   AlertCircle,
   AlertTriangle,
-  BarChart3,
   CheckCircle2,
   Circle,
   FileSpreadsheet,
   Link2,
+  Loader2,
   Upload,
 } from "lucide-react";
 import {
@@ -24,8 +25,20 @@ import { useUiStore } from "@/store/ui-store";
 import { PageHeader } from "@/components/ui/page-header";
 import { QuotaMeter } from "@/components/ui/quota-meter";
 import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
-import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/cn";
+
+const AnalyticsPanel = dynamic(
+  () => import("@/components/analytics/analytics-panel").then((mod) => mod.AnalyticsPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading charts...
+      </div>
+    ),
+  },
+);
 
 interface DashboardResponse {
   dbMode: string;
@@ -179,11 +192,7 @@ export function DashboardClient() {
       />
 
       {activeTab === "analytics" ? (
-        <EmptyState
-          icon={BarChart3}
-          title={t.dashboard.analyticsEmptyTitle}
-          body={t.dashboard.analyticsEmptyBody}
-        />
+        <AnalyticsPanel />
       ) : (
         <>
           <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
