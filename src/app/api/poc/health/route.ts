@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { evaluateQuotaState } from "@/core";
 import { getDb } from "@/db/client";
+import { countActiveJobs } from "@/db/repositories/jobs";
 import { listSanitizedConnections } from "@/db/repositories/providers";
+import { getCurrentUsageCounters } from "@/db/repositories/usage";
 import { getProviderRegistry } from "@/lib/registry";
 
 export async function GET() {
@@ -15,26 +17,33 @@ export async function GET() {
     capabilityVersion: meta.capabilities.version,
   }));
 
-  let dbMode: string = "unbound";
+  let dbMode = "unbound";
   let connectedProviders = 0;
+  let activeJobsCount = 0;
+  let quota = evaluateQuotaState({});
+
   try {
     const { db, mode } = await getDb();
     dbMode = mode;
-    const conns = await listSanitizedConnections(db);
+    const [conns, active, counters] = await Promise.all([
+      listSanitizedConnections(db),
+      countActiveJobs(db),
+      getCurrentUsageCounters(db),
+    ]);
     connectedProviders = conns.filter((c) => c.status === "active").length;
+    activeJobsCount = active;
+    quota = evaluateQuotaState(counters);
   } catch {
     dbMode = "error";
   }
 
-  const quota = evaluateQuotaState({});
-
   return NextResponse.json({
     ok: true,
-    phase: "phase-1-2",
+    phase: "phase-3",
     runtime: "nextjs-app-router",
     dbMode,
     connectedProviders,
-    activeJobsCount: 0,
+    activeJobsCount,
     registeredAdapters: adapters,
     quota: {
       overallLevel: quota.overallLevel,

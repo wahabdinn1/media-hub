@@ -119,7 +119,7 @@ class VidaraApiError extends Error {
 type FetchLike = typeof fetch;
 
 function requireApiKey(credentials: ProviderCredentials): string {
-  const key = credentials.apiKey?.trim();
+  const key = credentials.apiKey?.trim().replace(/^["']|["']$/g, "");
   if (!key) {
     throw new VidaraApiError("Missing Vidara API key.", { httpStatus: 401 });
   }
@@ -169,13 +169,15 @@ export function createVidaraAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
       );
     }
 
-    let rawJson: unknown;
+    const rawText = await response.text();
+    let rawJson: unknown = null;
     try {
-      rawJson = await response.json();
+      rawJson = rawText ? JSON.parse(rawText) : null;
     } catch {
+      const safeSnippet = redactUrl(rawText.replace(apiKey, "[REDACTED]").trim().slice(0, 120));
       throw new VidaraApiError(
-        `Non-JSON response (${response.status}) from ${redactUrl(url.toString())}`,
-        { httpStatus: response.status },
+        `Non-JSON response (${response.status}): ${safeSnippet || "empty body"}`,
+        { httpStatus: response.status, providerMessage: safeSnippet || undefined },
       );
     }
 
@@ -570,12 +572,21 @@ export function createVidaraAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
           message: "Vidara request timed out. Reconcile before retrying to avoid duplicate external actions.",
         };
       }
-      if (status === 401 || status === 403 || /invalid.?key|unauth|forbidden/i.test(safeMessage)) {
+      const providerMessage = raw instanceof VidaraApiError ? raw.providerMessage : undefined;
+      if (status === 401 || /invalid.?api.?key|invalid.?key|missing.?api.?key|unauth/i.test(safeMessage)) {
         return {
           code: "AUTH_FAILED",
           retryable: false,
-          message: "Vidara rejected the API key. Check or rotate your credential.",
-          providerCode: status ? String(status) : undefined,
+          message: `Vidara rejected the API key (${status ?? "401"}${providerMessage ? `: ${providerMessage}` : ""}). Verify you copied the active key from your Vidara account API settings.`,
+          providerCode: status ? String(status) : "401",
+        };
+      }
+      if (status === 403 || /forbidden/i.test(safeMessage)) {
+        return {
+          code: "AUTH_FAILED",
+          retryable: false,
+          message: `Vidara returned HTTP 403 (${providerMessage || "Forbidden"}). Check key permissions or upstream Cloudflare protection.`,
+          providerCode: "403",
         };
       }
       if (status === 429 || /rate.?limit|too many/i.test(safeMessage)) {
