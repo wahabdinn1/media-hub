@@ -11,12 +11,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") ?? undefined;
     const status = searchParams.get("status") ?? "all";
+    const collectionId = searchParams.get("collectionId") ?? undefined;
     const page = Number(searchParams.get("page") ?? "1") || 1;
     const pageSize = Number(searchParams.get("pageSize") ?? "24") || 24;
 
     const { db } = await getDb();
     await incrementUsageCounter(db, "worker_requests_daily", 1);
-    const result = await listAssetsPaginated(db, { q, status, page, pageSize });
+    const result = await listAssetsPaginated(db, { q, status, collectionId, page, pageSize });
     return NextResponse.json(result);
   } catch (err) {
     return toApiErrorResponse(err);

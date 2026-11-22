@@ -10,6 +10,8 @@ import {
   activityLogs,
   assetLocations,
   assets,
+  collectionAssets,
+  collections,
   jobs,
   providerConnections,
   thumbnails,
@@ -386,6 +388,7 @@ export async function listAssetsPaginated(
   query: {
     q?: string;
     status?: string;
+    collectionId?: string;
     page?: number;
     pageSize?: number;
   },
@@ -399,6 +402,11 @@ export async function listAssetsPaginated(
   }
   if (query.q && query.q.trim() !== "") {
     conditions.push(like(assets.title, `%${query.q.trim()}%`));
+  }
+  if (query.collectionId && query.collectionId.trim() !== "") {
+    conditions.push(
+      sql`${assets.id} IN (SELECT ${collectionAssets.assetId} FROM ${collectionAssets} WHERE ${collectionAssets.collectionId} = ${query.collectionId.trim()})`,
+    );
   }
 
   const whereClause = and(...conditions);
@@ -472,7 +480,7 @@ export async function getAssetDetail(db: MediaHubDb, assetId: string) {
     .limit(1);
   if (!rows[0]) return null;
 
-  const [locs, thumbs, conns, relatedActivity, relatedJobs] = await Promise.all([
+  const [locs, thumbs, conns, relatedActivity, relatedJobs, memberCols] = await Promise.all([
     db.select().from(assetLocations).where(eq(assetLocations.assetId, assetId)),
     db.select().from(thumbnails).where(eq(thumbnails.assetId, assetId)).orderBy(desc(thumbnails.createdAt)),
     db.select().from(providerConnections),
@@ -483,12 +491,21 @@ export async function getAssetDetail(db: MediaHubDb, assetId: string) {
       .orderBy(desc(activityLogs.createdAt))
       .limit(30),
     db.select().from(jobs).orderBy(desc(jobs.createdAt)).limit(20),
+    db
+      .select({
+        id: collections.id,
+        name: collections.name,
+      })
+      .from(collectionAssets)
+      .innerJoin(collections, eq(collectionAssets.collectionId, collections.id))
+      .where(eq(collectionAssets.assetId, assetId)),
   ]);
 
   const connMap = new Map(conns.map((c) => [c.id, c]));
 
   return {
     asset: rows[0],
+    collections: memberCols,
     locations: locs.map((loc) => {
       const conn = connMap.get(loc.providerConnectionId);
       let parsedMeta: Record<string, unknown> = {};

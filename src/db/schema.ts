@@ -98,6 +98,33 @@ export const assetLocations = sqliteTable(
   ],
 );
 
+export const collections = sqliteTable("collections", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  parentId: text("parent_id"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const collectionAssets = sqliteTable(
+  "collection_assets",
+  {
+    collectionId: text("collection_id")
+      .notNull()
+      .references(() => collections.id, { onDelete: "cascade" }),
+    assetId: text("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+    addedAt: text("added_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_collection_assets_unique").on(table.collectionId, table.assetId),
+    index("idx_collection_assets_asset").on(table.assetId),
+  ],
+);
+
 export const providerFolders = sqliteTable(
   "provider_folders",
   {

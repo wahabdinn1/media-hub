@@ -11,13 +11,16 @@ import {
   FolderKanban,
   FolderPlus,
   Grid2X2,
+  Layers,
   List,
   Loader2,
   Plug,
+  Plus,
   RefreshCw,
   Search,
   Trash2,
   Upload,
+  X,
   XCircle,
 } from "lucide-react";
 import { getMessages, type CanonicalAssetStatus } from "@/shared";
@@ -63,6 +66,14 @@ interface ProviderFolderItem {
   updatedAt: string;
 }
 
+interface CollectionItem {
+  id: string;
+  name: string;
+  description: string;
+  parentId: string | null;
+  assetCount: number;
+}
+
 function assetStatusTone(status: CanonicalAssetStatus): BadgeTone {
   switch (status) {
     case "active":
@@ -93,6 +104,7 @@ export function LibraryClient() {
 
   const qParam = searchParams.get("q") ?? "";
   const statusParam = searchParams.get("status") ?? "all";
+  const collectionParam = searchParams.get("collectionId") ?? "";
   const pageParam = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
 
   const [searchInput, setSearchInput] = useState(qParam);
@@ -100,16 +112,28 @@ export function LibraryClient() {
   const [newFolderName, setNewFolderName] = useState("");
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [confirmDeleteFolderId, setConfirmDeleteFolderId] = useState<string | null>(null);
+
+  const [newCollectionName, setNewCollectionName] = useState("");
+  const [showNewCollection, setShowNewCollection] = useState(false);
+  const [confirmDeleteColId, setConfirmDeleteColId] = useState<string | null>(null);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [targetCollectionId, setTargetCollectionId] = useState("");
+
   const [syncNotice, setSyncNotice] = useState<{ kind: "success" | "error"; text: string } | null>(
     null,
   );
 
   const { data, isLoading, error } = useQuery<AssetsListResponse>({
-    queryKey: ["assets", { q: qParam, status: statusParam, page: pageParam }],
+    queryKey: [
+      "assets",
+      { q: qParam, status: statusParam, collectionId: collectionParam, page: pageParam },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (qParam) params.set("q", qParam);
       if (statusParam !== "all") params.set("status", statusParam);
+      if (collectionParam) params.set("collectionId", collectionParam);
       params.set("page", String(pageParam));
       params.set("pageSize", "24");
       const res = await fetch(`/api/assets?${params.toString()}`);
@@ -126,6 +150,15 @@ export function LibraryClient() {
     queryFn: async () => {
       const res = await fetch("/api/folders");
       if (!res.ok) return { folders: [] };
+      return res.json();
+    },
+  });
+
+  const { data: collectionsData } = useQuery<{ collections: CollectionItem[] }>({
+    queryKey: ["collections"],
+    queryFn: async () => {
+      const res = await fetch("/api/collections");
+      if (!res.ok) return { collections: [] };
       return res.json();
     },
   });
@@ -217,7 +250,87 @@ export function LibraryClient() {
     },
   });
 
-  function updateQuery(next: { q?: string; status?: string; page?: number }) {
+  const createCollectionMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await fetch("/api/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to create collection");
+      return json;
+    },
+    onSuccess: () => {
+      setNewCollectionName("");
+      setShowNewCollection(false);
+      setSyncNotice({ kind: "success", text: "MediaHub collection created." });
+      void queryClient.invalidateQueries({ queryKey: ["collections"] });
+    },
+    onError: (err) => {
+      setSyncNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Failed to create collection.",
+      });
+    },
+  });
+
+  const deleteCollectionMutation = useMutation({
+    mutationFn: async (collectionId: string) => {
+      const res = await fetch(`/api/collections/${collectionId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(json.error ?? "Failed to delete collection");
+      }
+      return collectionId;
+    },
+    onSuccess: (deletedId) => {
+      setSyncNotice({
+        kind: "success",
+        text: "Collection removed. All media assets remain untouched.",
+      });
+      if (collectionParam === deletedId) {
+        updateQuery({ collectionId: "" });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["collections"] });
+    },
+    onError: (err) => {
+      setSyncNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Failed to delete collection.",
+      });
+    },
+  });
+
+  const bulkAddToCollectionMutation = useMutation({
+    mutationFn: async ({ collectionId, assetIds }: { collectionId: string; assetIds: string[] }) => {
+      const res = await fetch(`/api/collections/${collectionId}/assets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assetIds }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string; added?: number };
+      if (!res.ok) throw new Error(json.error ?? "Failed to add assets to collection");
+      return json;
+    },
+    onSuccess: (res) => {
+      setSelectedIds([]);
+      setSyncNotice({
+        kind: "success",
+        text: `Added ${res.added ?? 0} asset(s) to collection.`,
+      });
+      void queryClient.invalidateQueries({ queryKey: ["collections"] });
+      void queryClient.invalidateQueries({ queryKey: ["assets"] });
+    },
+    onError: (err) => {
+      setSyncNotice({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Failed to update collection.",
+      });
+    },
+  });
+
+  function updateQuery(next: { q?: string; status?: string; collectionId?: string; page?: number }) {
     const params = new URLSearchParams(searchParams.toString());
     if (next.q !== undefined) {
       if (next.q.trim()) params.set("q", next.q.trim());
@@ -229,6 +342,11 @@ export function LibraryClient() {
       else params.set("status", next.status);
       params.delete("page");
     }
+    if (next.collectionId !== undefined) {
+      if (next.collectionId) params.set("collectionId", next.collectionId);
+      else params.delete("collectionId");
+      params.delete("page");
+    }
     if (next.page !== undefined) {
       if (next.page <= 1) params.delete("page");
       else params.set("page", String(next.page));
@@ -237,8 +355,18 @@ export function LibraryClient() {
     router.push(qs ? `/library?${qs}` : "/library");
   }
 
+  function toggleSelect(assetId: string) {
+    setSelectedIds((prev) =>
+      prev.includes(assetId) ? prev.filter((id) => id !== assetId) : [...prev, assetId],
+    );
+  }
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   const folders = foldersData?.folders ?? [];
+  const collectionsList = collectionsData?.collections ?? [];
+  const activeCollection = collectionsList.find((c) => c.id === collectionParam) ?? null;
+  const allVisibleSelected =
+    Boolean(data?.items.length) && data!.items.every((item) => selectedIds.includes(item.id));
 
   const filters: Array<{ key: string; label: string }> = [
     { key: "all", label: t.library.filterAll },
@@ -302,101 +430,267 @@ export function LibraryClient() {
         </div>
       ) : null}
 
-      <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xs font-semibold text-text-primary">Provider folders</h2>
-            <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
-              {folders.length}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowNewFolder((v) => !v)}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
-          >
-            <FolderPlus className="h-3.5 w-3.5" />
-            New folder
-          </button>
-        </div>
-
-        {showNewFolder ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (newFolderName.trim()) {
-                createFolderMutation.mutate(newFolderName.trim());
-              }
-            }}
-            className="flex flex-wrap items-center gap-2 pt-1"
-          >
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name..."
-              className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
-            />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs font-semibold text-text-primary">MediaHub collections</h2>
+              <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
+                {collectionsList.length}
+              </span>
+            </div>
             <button
-              type="submit"
-              disabled={!newFolderName.trim() || createFolderMutation.isPending}
-              className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+              type="button"
+              onClick={() => setShowNewCollection((v) => !v)}
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
             >
-              {createFolderMutation.isPending ? "Creating..." : "Create"}
+              <Plus className="h-3.5 w-3.5" />
+              New collection
             </button>
-          </form>
-        ) : null}
+          </div>
 
-        {folders.length > 0 ? (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {folders.map((folder) => (
-              <div
-                key={folder.id}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5 text-xs"
+          {showNewCollection ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newCollectionName.trim()) {
+                  createCollectionMutation.mutate(newCollectionName.trim());
+                }
+              }}
+              className="flex flex-wrap items-center gap-2 pt-1"
+            >
+              <input
+                type="text"
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="Collection name..."
+                className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!newCollectionName.trim() || createCollectionMutation.isPending}
+                className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
               >
-                <Folder className="h-3.5 w-3.5 text-primary" />
-                <span className="font-medium text-text-primary">{folder.name}</span>
-                <ProviderBadge providerKey={folder.providerKey} />
-                {confirmDeleteFolderId === folder.id ? (
-                  <span className="inline-flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setConfirmDeleteFolderId(null);
-                        deleteFolderMutation.mutate(folder.id);
-                      }}
-                      disabled={deleteFolderMutation.isPending}
-                      className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDeleteFolderId(null)}
-                      className="text-[11px] text-text-secondary hover:text-text-primary"
-                    >
-                      Cancel
-                    </button>
-                  </span>
-                ) : (
+                {createCollectionMutation.isPending ? "Creating..." : "Create"}
+              </button>
+            </form>
+          ) : null}
+
+          {collectionsList.length > 0 ? (
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => updateQuery({ collectionId: "" })}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium",
+                  !collectionParam
+                    ? "border-primary/40 bg-primary-subtle text-primary"
+                    : "border-border bg-bg text-text-secondary hover:text-text-primary",
+                )}
+              >
+                All assets
+              </button>
+              {collectionsList.map((col) => (
+                <div
+                  key={col.id}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                    collectionParam === col.id
+                      ? "border-primary/40 bg-primary-subtle text-primary"
+                      : "border-border bg-bg text-text-primary",
+                  )}
+                >
                   <button
                     type="button"
-                    title="Delete folder (videos move to root)"
-                    onClick={() => setConfirmDeleteFolderId(folder.id)}
-                    className="text-text-secondary hover:text-danger"
+                    onClick={() =>
+                      updateQuery({ collectionId: collectionParam === col.id ? "" : col.id })
+                    }
+                    className="inline-flex items-center gap-1.5 font-medium"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Layers className="h-3.5 w-3.5" />
+                    <span>{col.name}</span>
+                    <span className="font-mono text-[11px] opacity-75">({col.assetCount})</span>
                   </button>
-                )}
-              </div>
-            ))}
+                  {confirmDeleteColId === col.id ? (
+                    <span className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmDeleteColId(null);
+                          deleteCollectionMutation.mutate(col.id);
+                        }}
+                        disabled={deleteCollectionMutation.isPending}
+                        className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteColId(null)}
+                        className="text-[11px] text-text-secondary hover:text-text-primary"
+                      >
+                        Cancel
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      title="Delete collection (assets are kept)"
+                      onClick={() => setConfirmDeleteColId(col.id)}
+                      className="text-text-secondary hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-text-secondary">
+              Organize videos across providers with MediaHub collections without changing provider folders.
+            </p>
+          )}
+        </section>
+
+        <section className="space-y-2.5 rounded-xl border border-border bg-surface p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs font-semibold text-text-primary">Provider folders</h2>
+              <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary">
+                {folders.length}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNewFolder((v) => !v)}
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2.5 text-xs font-medium text-text-primary hover:bg-surface-raised"
+            >
+              <FolderPlus className="h-3.5 w-3.5" />
+              New folder
+            </button>
           </div>
-        ) : (
-          <p className="text-xs text-text-secondary">
-            No provider folders synced yet. Click &ldquo;Sync from provider&rdquo; to load folders from your connected account.
-          </p>
-        )}
-      </section>
+
+          {showNewFolder ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newFolderName.trim()) {
+                  createFolderMutation.mutate(newFolderName.trim());
+                }
+              }}
+              className="flex flex-wrap items-center gap-2 pt-1"
+            >
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Folder name..."
+                className="h-8 w-56 rounded-md border border-border bg-bg px-2.5 text-xs text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!newFolderName.trim() || createFolderMutation.isPending}
+                className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+              >
+                {createFolderMutation.isPending ? "Creating..." : "Create"}
+              </button>
+            </form>
+          ) : null}
+
+          {folders.length > 0 ? (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {folders.map((folder) => (
+                <div
+                  key={folder.id}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5 text-xs"
+                >
+                  <Folder className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium text-text-primary">{folder.name}</span>
+                  <ProviderBadge providerKey={folder.providerKey} />
+                  {confirmDeleteFolderId === folder.id ? (
+                    <span className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmDeleteFolderId(null);
+                          deleteFolderMutation.mutate(folder.id);
+                        }}
+                        disabled={deleteFolderMutation.isPending}
+                        className="rounded bg-danger px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteFolderId(null)}
+                        className="text-[11px] text-text-secondary hover:text-text-primary"
+                      >
+                        Cancel
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      title="Delete folder (videos move to root)"
+                      onClick={() => setConfirmDeleteFolderId(folder.id)}
+                      className="text-text-secondary hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-text-secondary">
+              No provider folders synced yet. Click &ldquo;Sync from provider&rdquo; to load folders from your connected account.
+            </p>
+          )}
+        </section>
+      </div>
+
+      {selectedIds.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary-subtle px-4 py-2.5 text-xs">
+          <div className="flex items-center gap-2 font-medium text-primary">
+            <span>{selectedIds.length} selected</span>
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-text-secondary hover:text-text-primary"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={targetCollectionId}
+              onChange={(e) => setTargetCollectionId(e.target.value)}
+              className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
+            >
+              <option value="">Choose collection...</option>
+              {collectionsList.map((col) => (
+                <option key={col.id} value={col.id}>
+                  {col.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={!targetCollectionId || bulkAddToCollectionMutation.isPending}
+              onClick={() =>
+                bulkAddToCollectionMutation.mutate({
+                  collectionId: targetCollectionId,
+                  assetIds: selectedIds,
+                })
+              }
+              className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+            >
+              {bulkAddToCollectionMutation.isPending ? "Adding..." : "Add to collection"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -415,6 +709,20 @@ export function LibraryClient() {
               {f.label}
             </button>
           ))}
+          {activeCollection ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary-subtle px-2.5 py-1.5 text-xs font-medium text-primary">
+              <Layers className="h-3.5 w-3.5" />
+              {activeCollection.name}
+              <button
+                type="button"
+                aria-label="Clear collection filter"
+                onClick={() => updateQuery({ collectionId: "" })}
+                className="hover:opacity-75"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-2">
@@ -482,36 +790,65 @@ export function LibraryClient() {
       {data && data.items.length === 0 ? (
         <EmptyState
           icon={FolderKanban}
-          title={t.library.emptyTitle}
-          body={t.library.emptyBody}
+          title={activeCollection ? `No assets in "${activeCollection.name}"` : t.library.emptyTitle}
+          body={
+            activeCollection
+              ? "Select assets in the library table to add them to this collection."
+              : t.library.emptyBody
+          }
           action={
-            <>
+            activeCollection ? (
               <button
                 type="button"
-                onClick={() => syncMutation.mutate()}
-                disabled={syncMutation.isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Sync from provider
-              </button>
-              <Link
-                href="/providers"
+                onClick={() => updateQuery({ collectionId: "" })}
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3.5 py-2 text-xs font-medium text-text-primary hover:bg-surface-raised"
               >
-                <Plug className="h-3.5 w-3.5" />
-                {t.library.ctaConnectProvider}
-              </Link>
-            </>
+                Show all assets
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => syncMutation.mutate()}
+                  disabled={syncMutation.isPending}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground hover:bg-primary-hover"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Sync from provider
+                </button>
+                <Link
+                  href="/providers"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3.5 py-2 text-xs font-medium text-text-primary hover:bg-surface-raised"
+                >
+                  <Plug className="h-3.5 w-3.5" />
+                  {t.library.ctaConnectProvider}
+                </Link>
+              </>
+            )
           }
         />
       ) : null}
 
       {data && data.items.length > 0 && viewMode === "table" ? (
         <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[680px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-text-secondary">
+                <th className="w-10 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all visible assets"
+                    checked={allVisibleSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(data.items.map((i) => i.id));
+                      } else {
+                        setSelectedIds([]);
+                      }
+                    }}
+                    className="h-3.5 w-3.5 rounded border-border accent-primary"
+                  />
+                </th>
                 <th className="px-4 py-3 font-medium">Asset</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Provider</th>
@@ -522,6 +859,15 @@ export function LibraryClient() {
             <tbody className="divide-y divide-border">
               {data.items.map((item) => (
                 <tr key={item.id} className="hover:bg-surface-raised/50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${item.title}`}
+                      checked={selectedIds.includes(item.id)}
+                      onChange={() => toggleSelect(item.id)}
+                      className="h-3.5 w-3.5 rounded border-border accent-primary"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <Link href={`/library/${item.id}`} className="flex items-center gap-3">
                       <div className="flex h-10 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-bg">
@@ -557,7 +903,10 @@ export function LibraryClient() {
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {item.providers.map((p) => (
-                        <ProviderBadge key={`${p.connectionId}-${p.externalId}`} providerKey={p.providerKey} />
+                        <ProviderBadge
+                          key={`${p.connectionId}-${p.externalId}`}
+                          providerKey={p.providerKey}
+                        />
                       ))}
                     </div>
                   </td>
