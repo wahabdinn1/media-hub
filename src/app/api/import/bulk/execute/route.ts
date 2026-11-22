@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   buildBulkDryRun,
@@ -24,6 +23,9 @@ import { getProviderRegistry } from "@/lib/registry";
 const ExecuteBulkSchema = z.object({
   rawInput: z.string().min(1).max(200_000),
   rightsConfirmed: z.boolean(),
+  providerConnectionIds: z.array(z.string().min(1)).max(10).optional(),
+  folderByConnectionId: z.record(z.string(), z.string().nullable()).optional(),
+  collectionIds: z.array(z.string().min(1)).max(25).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -46,9 +48,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [settings, counters] = await Promise.all([
+    const [settings, counters, allConns] = await Promise.all([
       getPersistedSettings(db),
       getCurrentUsageCounters(db),
+      db.select().from(providerConnections),
     ]);
     const quota = evaluateQuotaState(counters, { killSwitchEnabled: settings.killSwitchEnabled });
     const gate = canEnqueueJob(quota, "video.upload_url", true);
@@ -56,32 +59,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: gate.reason, code: "QUOTA_EXCEEDED" }, { status: 429 });
     }
 
-    const conns = await db
-      .select()
-      .from(providerConnections)
-      .where(eq(providerConnections.isDefault, true))
-      .limit(1);
-    const conn = conns[0];
-    if (!conn || conn.status !== "active") {
+    const registry = getProviderRegistry();
+    const activeUploadConns = allConns.filter((c) => {
+      if (c.status !== "active") return false;
+      const adapter = registry.get(c.providerKey);
+      return Boolean(adapter && hasCapability(adapter.meta.capabilities, "upload.url"));
+    });
+
+    const defaultConn = activeUploadConns.find((c) => c.isDefault) ?? activeUploadConns[0];
+    const selectedConns =
+      body.providerConnectionIds && body.providerConnectionIds.length > 0
+        ? Array.from(new Set(body.providerConnectionIds))
+            .map((id) => activeUploadConns.find((c) => c.id === id))
+            .filter((c): c is (typeof activeUploadConns)[number] => Boolean(c))
+        : defaultConn
+          ? [defaultConn]
+          : [];
+
+    if (selectedConns.length === 0) {
       return NextResponse.json(
-        { error: "No active default provider connection configured." },
+        { error: "No active upload-capable provider connection selected." },
         { status: 400 },
       );
     }
 
-    const adapter = getProviderRegistry().require(conn.providerKey);
-    if (!hasCapability(adapter.meta.capabilities, "upload.url")) {
-      return NextResponse.json(
-        { error: `Provider "${adapter.meta.displayName}" does not support direct URL import.` },
-        { status: 400 },
-      );
-    }
+    const supportedProviders = new Set(activeUploadConns.map((c) => c.providerKey));
+    const connByProviderKey = new Map(activeUploadConns.map((c) => [c.providerKey, c]));
 
     const existingHashes = await listExistingSourceUrlHashes(db);
     const preview = await buildBulkDryRun({
       rawInput: body.rawInput,
-      supportedProviders: new Set([conn.providerKey]),
-      defaultProviderKey: conn.providerKey,
+      supportedProviders,
+      defaultProviderKey: selectedConns[0]!.providerKey,
       existingUrlHashes: existingHashes,
     });
 
@@ -96,13 +105,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const collectionIds = Array.from(new Set(body.collectionIds ?? []));
+    const expandedItems: Array<{
+      rawUrl: string;
+      sourceUrlHash: string;
+      title?: string;
+      providerConnectionId: string;
+      folderExternalId: string | null;
+      collectionIds: string[];
+    }> = [];
+
+    for (const row of validRows) {
+      // If CSV explicitly named a different provider column, honor it; otherwise fan out across all selected providers
+      const explicitConn =
+        row.provider && row.provider !== selectedConns[0]!.providerKey
+          ? connByProviderKey.get(row.provider)
+          : undefined;
+      const targets = explicitConn ? [explicitConn] : selectedConns;
+
+      for (const conn of targets) {
+        expandedItems.push({
+          rawUrl: row.rawUrl,
+          sourceUrlHash: row.sourceUrlHash,
+          title: row.title,
+          providerConnectionId: conn.id,
+          folderExternalId: body.folderByConnectionId?.[conn.id] ?? null,
+          collectionIds,
+        });
+      }
+    }
+
     const { batch, jobs } = await createBulkImportBatch(db, {
-      providerConnectionId: conn.id,
-      items: validRows.map((r) => ({
-        rawUrl: r.rawUrl,
-        sourceUrlHash: r.sourceUrlHash,
-        title: r.title,
-      })),
+      items: expandedItems,
     });
 
     await incrementUsageCounter(db, "worker_requests_daily", 1);
@@ -112,8 +146,10 @@ export async function POST(request: NextRequest) {
       entityType: "batch",
       entityId: batch.id,
       context: {
-        providerKey: conn.providerKey,
-        totalValid: validRows.length,
+        providers: selectedConns.map((c) => c.providerKey),
+        totalValidRows: validRows.length,
+        totalJobs: jobs.length,
+        collectionCount: collectionIds.length,
         rightsConfirmed: true,
       },
     });

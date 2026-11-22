@@ -11,11 +11,14 @@ export type BatchRow = typeof batches.$inferSelect;
 export async function createBulkImportBatch(
   db: MediaHubDb,
   params: {
-    providerConnectionId: string;
+    providerConnectionId?: string;
     items: Array<{
       rawUrl: string;
       sourceUrlHash: string;
       title?: string;
+      providerConnectionId?: string;
+      folderExternalId?: string | null;
+      collectionIds?: string[];
     }>;
   },
 ): Promise<{ batch: BatchRow; jobs: JobRow[] }> {
@@ -34,20 +37,25 @@ export async function createBulkImportBatch(
 
   const createdJobs: JobRow[] = [];
   for (const item of params.items) {
+    const connId = item.providerConnectionId ?? params.providerConnectionId;
+    if (!connId) continue;
+
     // Encrypt sensitive URLs inside job payload per PRD 13.5
     const { ciphertext } = await encryptCredentials({ url: item.rawUrl });
-    const idempotencyKey = `batch:${batchId}:${item.sourceUrlHash}`;
+    const idempotencyKey = `batch:${batchId}:${connId}:${item.sourceUrlHash}`;
 
     const { job } = await createIdempotentJob(db, {
       idempotencyKey,
       jobType: "video.upload_url",
-      providerConnectionId: params.providerConnectionId,
+      providerConnectionId: connId,
       batchId,
       status: "queued",
       payload: {
         redactedUrl: redactUrl(item.rawUrl),
         sourceUrlHash: item.sourceUrlHash,
         title: item.title ?? "Imported video",
+        folderExternalId: item.folderExternalId ?? null,
+        collectionIds: item.collectionIds ?? [],
         encryptedSource: ciphertext,
       },
     });

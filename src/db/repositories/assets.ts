@@ -335,6 +335,7 @@ export async function registerImportedAsset(
     sizeBytes?: number;
     sourceUrlHash?: string | null;
     providerMetadata: Record<string, unknown>;
+    existingAssetId?: string;
   },
 ): Promise<{ assetId: string; locationId: string }> {
   const now = new Date().toISOString();
@@ -354,21 +355,39 @@ export async function registerImportedAsset(
     return { assetId: existing[0].assetId, locationId: existing[0].id };
   }
 
-  const assetId = crypto.randomUUID();
+  let assetId = params.existingAssetId;
+  let createdAsset = false;
+
+  if (!assetId && params.sourceUrlHash) {
+    const byHash = await db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.sourceUrlHash, params.sourceUrlHash), isNull(assets.deletedAt)))
+      .limit(1);
+    if (byHash[0]) {
+      assetId = byHash[0].id;
+    }
+  }
+
+  if (!assetId) {
+    assetId = crypto.randomUUID();
+    createdAsset = true;
+    await db.insert(assets).values({
+      id: assetId,
+      assetType: "video",
+      title: params.title,
+      canonicalStatus: params.canonicalStatus,
+      sizeBytes: params.sizeBytes ?? null,
+      sourceUrlHash: params.sourceUrlHash ?? null,
+      metadataJson: "{}",
+      createdAt: now,
+      updatedAt: now,
+    });
+  } else {
+    await db.update(assets).set({ updatedAt: now }).where(eq(assets.id, assetId));
+  }
+
   const locationId = crypto.randomUUID();
-
-  await db.insert(assets).values({
-    id: assetId,
-    assetType: "video",
-    title: params.title,
-    canonicalStatus: params.canonicalStatus,
-    sizeBytes: params.sizeBytes ?? null,
-    sourceUrlHash: params.sourceUrlHash ?? null,
-    metadataJson: "{}",
-    createdAt: now,
-    updatedAt: now,
-  });
-
   await db.insert(assetLocations).values({
     id: locationId,
     assetId,
@@ -380,7 +399,7 @@ export async function registerImportedAsset(
     lastSeenAt: now,
   });
 
-  await incrementUsageCounter(db, "d1_rows_written_daily", 2);
+  await incrementUsageCounter(db, "d1_rows_written_daily", createdAsset ? 2 : 1);
   return { assetId, locationId };
 }
 

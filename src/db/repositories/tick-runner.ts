@@ -13,6 +13,7 @@ import { activityLogs, assets, jobEvents, jobs } from "../schema";
 import { recordActivity } from "./activity";
 import { registerImportedAsset } from "./assets";
 import { extractJobSourceUrl, reconcileBatchStatus } from "./batches";
+import { addAssetsToCollection } from "./collections";
 import { transitionJob, type JobRow } from "./jobs";
 import { decryptConnectionCredentials, getConnectionById } from "./providers";
 import { getPersistedSettings } from "./settings";
@@ -96,12 +97,15 @@ async function processSingleQueuedUploadJob(db: MediaHubDb, job: JobRow): Promis
   const payload = JSON.parse(job.payloadJson ?? "{}") as {
     title?: string;
     sourceUrlHash?: string;
+    folderExternalId?: string | null;
+    collectionIds?: string[];
   };
   const credentials = await decryptConnectionCredentials(conn);
 
   try {
     const uploadRes = await adapter.uploadFromUrl(credentials, rawUrl, {
       title: payload.title,
+      folderExternalId: payload.folderExternalId ?? undefined,
     });
 
     const registered = await registerImportedAsset(db, {
@@ -113,6 +117,14 @@ async function processSingleQueuedUploadJob(db: MediaHubDb, job: JobRow): Promis
       sourceUrlHash: payload.sourceUrlHash ?? validation.sourceUrlHash,
       providerMetadata: uploadRes.providerMetadata,
     });
+
+    if (Array.isArray(payload.collectionIds) && payload.collectionIds.length > 0) {
+      for (const colId of payload.collectionIds) {
+        if (typeof colId === "string" && colId) {
+          await addAssetsToCollection(db, colId, [registered.assetId]);
+        }
+      }
+    }
 
     const nextStatus = adapter.meta.capabilities.asyncProcessing
       ? "provider_processing"

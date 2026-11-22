@@ -392,7 +392,7 @@ export function createVidaraAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
     async uploadFromUrl(
       credentials: ProviderCredentials,
       url: string,
-      options?: { title?: string },
+      options?: { title?: string; folderExternalId?: string },
     ): Promise<UploadResult> {
       const result = await callVidara<{
         filecode?: string;
@@ -400,12 +400,29 @@ export function createVidaraAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
         size?: number | string;
       }>(credentials, "/upload/url", { url });
 
+      const externalId = String(result?.filecode ?? "");
+      let assignedFolderId: string | null = null;
+      if (externalId && options?.folderExternalId) {
+        try {
+          await callVidara(credentials, "/video/move", {
+            filecode: externalId,
+            fld_id: options.folderExternalId,
+          });
+          assignedFolderId = options.folderExternalId;
+        } catch {
+          // Non-fatal: upload already succeeded; folder assignment can be retried on Asset Detail
+        }
+      }
+
       return {
-        externalId: String(result?.filecode ?? ""),
+        externalId,
         title: options?.title ?? String(result?.title ?? "Untitled"),
         sizeBytes: parseOptionalNumber(result?.size),
         canonicalStatus: "processing",
-        providerMetadata: { ...result },
+        providerMetadata: {
+          ...result,
+          ...(assignedFolderId ? { folderId: assignedFolderId } : {}),
+        },
       };
     },
 

@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 import type { BulkDryRunSummary, BulkRowStatus } from "@/core";
 import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
+import {
+  DestinationSelector,
+  type UploadDestinationState,
+} from "@/components/import/destination-selector";
 
 interface DryRunResponse {
   preview: BulkDryRunSummary;
@@ -43,6 +47,11 @@ export function BulkImportPanel() {
   const queryClient = useQueryClient();
   const [rawInput, setRawInput] = useState("");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const [destination, setDestination] = useState<UploadDestinationState>({
+    providerConnectionIds: [],
+    folderByConnectionId: {},
+    collectionIds: [],
+  });
   const [dryRun, setDryRun] = useState<DryRunResponse | null>(null);
   const [created, setCreated] = useState<ExecuteBulkResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -85,7 +94,13 @@ export function BulkImportPanel() {
       const res = await fetch("/api/import/bulk/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawInput, rightsConfirmed }),
+        body: JSON.stringify({
+          rawInput,
+          rightsConfirmed,
+          providerConnectionIds: destination.providerConnectionIds,
+          folderByConnectionId: destination.folderByConnectionId,
+          collectionIds: destination.collectionIds,
+        }),
       });
       const json = (await res.json().catch(() => ({}))) as ExecuteBulkResponse & { error?: string };
       if (!res.ok) throw new Error(json.error ?? "Batch creation failed.");
@@ -116,6 +131,8 @@ export function BulkImportPanel() {
   return (
     <div className="space-y-5">
       <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
+        <DestinationSelector value={destination} onChange={setDestination} />
+
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-text-primary">
@@ -258,14 +275,18 @@ export function BulkImportPanel() {
 
               <button
                 type="button"
-                disabled={!rightsConfirmed || executeMutation.isPending}
+                disabled={
+                  !rightsConfirmed ||
+                  destination.providerConnectionIds.length === 0 ||
+                  executeMutation.isPending
+                }
                 onClick={() => executeMutation.mutate()}
                 className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {executeMutation.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : null}
-                Create batch ({dryRun.preview.valid} jobs)
+                Create batch ({dryRun.preview.valid * Math.max(1, destination.providerConnectionIds.length)} jobs)
               </button>
             </div>
           ) : null}

@@ -20,12 +20,22 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BulkImportPanel } from "@/components/import/bulk-import-panel";
+import {
+  DestinationSelector,
+  type UploadDestinationState,
+} from "@/components/import/destination-selector";
 import { cn } from "@/lib/cn";
 
 type ImportTab = "url" | "file" | "bulk" | "cloud";
 
 interface ImportCreatedResult {
   job: { id: string; status: string };
+  jobs?: Array<{
+    connectionId: string;
+    providerKey: string;
+    job: { id: string; status: string };
+    error?: string;
+  }>;
   assetId?: string;
   deduplicated?: boolean;
 }
@@ -42,6 +52,11 @@ export function ImportClient() {
   const [urlValue, setUrlValue] = useState("");
   const [titleOverride, setTitleOverride] = useState("");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const [destination, setDestination] = useState<UploadDestinationState>({
+    providerConnectionIds: [],
+    folderByConnectionId: {},
+    collectionIds: [],
+  });
   const [validation, setValidation] = useState<UrlValidationResult | null>(null);
   const [createdResult, setCreatedResult] = useState<ImportCreatedResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -80,6 +95,9 @@ export function ImportClient() {
           url: urlValue.trim(),
           title: titleOverride.trim() || undefined,
           rightsConfirmed,
+          providerConnectionIds: destination.providerConnectionIds,
+          folderByConnectionId: destination.folderByConnectionId,
+          collectionIds: destination.collectionIds,
           idempotencyKey: validation?.sourceUrlHash
             ? `import-url:${validation.sourceUrlHash}`
             : undefined,
@@ -154,7 +172,9 @@ export function ImportClient() {
       </div>
 
       {activeTab === "url" ? (
-        <section className="max-w-2xl space-y-4 rounded-xl border border-border bg-surface p-5">
+        <section className="max-w-3xl space-y-4 rounded-xl border border-border bg-surface p-5">
+          <DestinationSelector value={destination} onChange={setDestination} />
+
           <div className="space-y-1.5">
             <label htmlFor="direct-url-input" className="block text-xs font-medium text-text-primary">
               Direct media URL
@@ -253,13 +273,19 @@ export function ImportClient() {
                 <button
                   type="button"
                   onClick={() => importMutation.mutate()}
-                  disabled={!rightsConfirmed || importMutation.isPending}
+                  disabled={
+                    !rightsConfirmed ||
+                    destination.providerConnectionIds.length === 0 ||
+                    importMutation.isPending
+                  }
                   className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {importMutation.isPending ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : null}
-                  Start import job
+                  {destination.providerConnectionIds.length > 1
+                    ? `Start import to ${destination.providerConnectionIds.length} providers`
+                    : "Start import job"}
                 </button>
               </div>
             </>
@@ -280,8 +306,22 @@ export function ImportClient() {
                   : "Import job created"}
               </div>
               <div className="font-mono text-text-secondary">
-                Job ID: {createdResult.job.id} · Status: {createdResult.job.status}
+                {createdResult.jobs && createdResult.jobs.length > 1
+                  ? `Created ${createdResult.jobs.length} provider jobs for 1 universal asset.`
+                  : `Job ID: ${createdResult.job.id} · Status: ${createdResult.job.status}`}
               </div>
+              {createdResult.jobs && createdResult.jobs.length > 1 ? (
+                <ul className="space-y-1 font-mono text-[11px] text-text-secondary">
+                  {createdResult.jobs.map((entry) => (
+                    <li key={entry.job.id}>
+                      <Link href={`/jobs/${entry.job.id}`} className="text-primary hover:underline">
+                        {entry.providerKey} ({entry.job.id.slice(0, 8)})
+                      </Link>{" "}
+                      — {entry.error ? `error: ${entry.error}` : entry.job.status}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <div className="flex flex-wrap gap-2 pt-1">
                 <Link
                   href={`/jobs/${createdResult.job.id}`}
