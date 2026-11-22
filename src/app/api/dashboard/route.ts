@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { desc, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { evaluateQuotaState, requireOwnerRequest } from "@/core";
 import { getDb } from "@/db/client";
-import { activityLogs, assets, jobs } from "@/db/schema";
+import {
+  activityLogs,
+  assets,
+  collections,
+  jobs,
+  providerFolders,
+  thumbnails,
+} from "@/db/schema";
 import { listSanitizedConnections } from "@/db/repositories/providers";
+import { getPersistedSettings } from "@/db/repositories/settings";
 import { getCurrentUsageCounters } from "@/db/repositories/usage";
 import { toApiErrorResponse } from "@/lib/api-error";
 
 export async function GET(request: NextRequest) {
   try {
-    await requireOwnerRequest(request, "dashboard.read");
+    const principal = await requireOwnerRequest(request, "dashboard.read");
     const { db, mode } = await getDb();
 
     const [
@@ -17,8 +25,12 @@ export async function GET(request: NextRequest) {
       jobStatsRows,
       recentJobs,
       recentActivity,
+      recentAssetRows,
+      collectionsCountRows,
+      foldersCountRows,
       connections,
       counters,
+      settings,
     ] = await Promise.all([
       db
         .select({
@@ -35,11 +47,37 @@ export async function GET(request: NextRequest) {
         })
         .from(jobs)
         .groupBy(jobs.status),
-      db.select().from(jobs).orderBy(desc(jobs.createdAt)).limit(6),
-      db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt)).limit(6),
+      db.select().from(jobs).orderBy(desc(jobs.createdAt)).limit(5),
+      db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt)).limit(5),
+      db
+        .select()
+        .from(assets)
+        .where(isNull(assets.deletedAt))
+        .orderBy(desc(assets.createdAt))
+        .limit(4),
+      db.select({ count: sql<number>`count(*)` }).from(collections),
+      db.select({ count: sql<number>`count(*)` }).from(providerFolders),
       listSanitizedConnections(db),
       getCurrentUsageCounters(db),
+      getPersistedSettings(db),
     ]);
+
+    const thumbMap = new Map<string, string | null>();
+    if (recentAssetRows.length > 0) {
+      const ids = recentAssetRows.map((a) => a.id);
+      const thumbs = await db
+        .select()
+        .from(thumbnails)
+        .where(
+          and(
+            eq(thumbnails.isActive, true),
+            sql`${thumbnails.assetId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`,
+          ),
+        );
+      for (const th of thumbs) {
+        thumbMap.set(th.assetId, th.sourceUrl);
+      }
+    }
 
     const assetCounts: Record<string, number> = {};
     let totalAssets = 0;
@@ -64,7 +102,7 @@ export async function GET(request: NextRequest) {
       (jobCounts.retry_wait ?? 0);
 
     const defaultConnection = connections.find((c) => c.isDefault) ?? connections[0] ?? null;
-    const quota = evaluateQuotaState(counters);
+    const quota = evaluateQuotaState(counters, { killSwitchEnabled: settings.killSwitchEnabled });
 
     const alerts: Array<{
       id: string;
@@ -100,8 +138,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       dbMode: mode,
+      ownerLabel: principal.email,
       summary: {
         totalAssets,
+        totalCollections: Number(collectionsCountRows[0]?.count ?? 0),
+        totalFolders: Number(foldersCountRows[0]?.count ?? 0),
         processingAssets: assetCounts.processing ?? 0,
         dmcaAssets: assetCounts.dmca ?? 0,
         removedAssets: assetCounts.removed_remote ?? 0,
@@ -111,6 +152,15 @@ export async function GET(request: NextRequest) {
         jobsUnknown: jobCounts.unknown ?? 0,
       },
       defaultConnection,
+      recentAssets: recentAssetRows.map((a) => ({
+        id: a.id,
+        title: a.title,
+        canonicalStatus: a.canonicalStatus,
+        sizeBytes: a.sizeBytes,
+        durationSeconds: a.durationSeconds,
+        createdAt: a.createdAt,
+        thumbnailUrl: thumbMap.get(a.id) ?? null,
+      })),
       recentJobs,
       recentActivity,
       alerts,

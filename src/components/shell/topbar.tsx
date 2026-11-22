@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -25,19 +25,7 @@ interface PocHealthResponse {
   activeJobsCount: number;
 }
 
-function buildBreadcrumbs(pathname: string): Array<{ label: string; href: string }> {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length === 0) return [{ label: "Dashboard", href: "/dashboard" }];
-
-  return segments.map((seg, idx) => {
-    const href = `/${segments.slice(0, idx + 1).join("/")}`;
-    const label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ");
-    return { label, href };
-  });
-}
-
 export function Topbar() {
-  const pathname = usePathname();
   const router = useRouter();
   const t = getMessages("en");
   const theme = useUiStore((s) => s.theme);
@@ -69,7 +57,6 @@ export function Topbar() {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
-  const breadcrumbs = buildBreadcrumbs(pathname);
   const activeJobs = health?.activeJobsCount ?? 0;
 
   function handleSearchSubmit(e: React.FormEvent) {
@@ -79,50 +66,31 @@ export function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-bg/85 px-4 backdrop-blur-md sm:px-8">
-      <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-1.5 text-sm lg:flex">
-        {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.href} className="flex items-center gap-1.5">
-            {index > 0 ? <span className="text-border-strong">/</span> : null}
-            <Link
-              href={crumb.href}
-              className={cn(
-                "truncate whitespace-nowrap transition-colors",
-                index === breadcrumbs.length - 1
-                  ? "font-medium text-text-primary"
-                  : "text-text-secondary hover:text-text-primary",
-              )}
-            >
-              {crumb.label}
-            </Link>
-          </div>
-        ))}
-      </nav>
-
-      <div className="flex flex-1 items-center gap-2 lg:max-w-sm lg:flex-initial">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-bg/90 px-4 backdrop-blur-md sm:px-7">
+      <div className="flex flex-1 items-center gap-2 max-w-xl">
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
           <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-secondary"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary"
             aria-hidden="true"
           />
           <input
             type="search"
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
-            placeholder={t.topbar.searchPlaceholder}
+            placeholder="Search videos, assets, or jobs…"
             aria-label={t.topbar.searchPlaceholder}
-            className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-3.5 text-sm text-text-primary placeholder:text-text-secondary transition-colors focus:border-border-strong focus:outline-none"
+            className="h-10 w-full rounded-xl border border-border bg-surface pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary transition-colors focus:border-primary focus:outline-none"
           />
         </form>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <Link
           href="/jobs"
           className={cn(
-            "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-medium tabular-nums transition-colors",
+            "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 text-xs font-medium tabular-nums transition-colors",
             activeJobs > 0
-              ? "border-warning/40 bg-warning-subtle text-warning"
+              ? "border-primary/40 bg-primary-subtle text-primary"
               : "border-border bg-surface text-text-secondary hover:border-border-strong hover:text-text-primary",
           )}
           title="Job Center"
@@ -150,10 +118,7 @@ export function Topbar() {
           </button>
 
           {newMenuOpen ? (
-            <div
-              role="menu"
-              className="dusk-plate absolute right-0 mt-2 w-48 p-1.5"
-            >
+            <div role="menu" className="dusk-plate absolute right-0 mt-2 w-48 p-1.5">
               <Link
                 role="menuitem"
                 href="/import?tab=url"
@@ -178,7 +143,7 @@ export function Topbar() {
                 onClick={() => setNewMenuOpen(false)}
                 className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-raised"
               >
-                <FileSpreadsheet className="h-4 w-4 text-text-secondary" />
+                <FileSpreadsheet className="h-4 w-4 text-violet" />
                 {t.topbar.newBulkImport}
               </Link>
             </div>
@@ -189,10 +154,23 @@ export function Topbar() {
           type="button"
           onClick={toggleTheme}
           aria-label={theme === "dark" ? t.topbar.themeToLight : t.topbar.themeToDark}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text-primary"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-text-primary"
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
+
+        <Link
+          href="/settings"
+          className="hidden items-center gap-2.5 rounded-xl border border-border bg-surface px-2.5 py-1.5 transition-colors hover:border-border-strong lg:flex"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-subtle text-xs font-semibold text-primary">
+            MH
+          </span>
+          <div className="leading-tight">
+            <div className="text-xs font-semibold text-text-primary">Owner</div>
+            <div className="text-[11px] text-text-secondary">Personal Plan</div>
+          </div>
+        </Link>
       </div>
     </header>
   );
