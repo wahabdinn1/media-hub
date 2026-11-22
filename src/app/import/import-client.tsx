@@ -231,8 +231,10 @@ export function ImportClient() {
               </div>
               <p>{validation.reason}</p>
               {validation.valid ? (
-                <div className="flex flex-wrap gap-4 font-mono text-[11px] opacity-90">
-                  <span>URL: {validation.redactedUrl}</span>
+                <div className="flex flex-wrap gap-4 tabular-nums text-[11px] opacity-90">
+                  <span>
+                    URL: <code className="font-mono">{validation.redactedUrl}</code>
+                  </span>
                   {validation.contentLength ? (
                     <span>Size: {(validation.contentLength / 1024 ** 2).toFixed(2)} MiB</span>
                   ) : null}
@@ -316,8 +318,9 @@ export function ImportClient() {
                     <li key={entry.job.id}>
                       <Link href={`/jobs/${entry.job.id}`} className="text-primary hover:underline">
                         {entry.providerKey} ({entry.job.id.slice(0, 8)})
-                      </Link>{" "}
-                      — {entry.error ? `error: ${entry.error}` : entry.job.status}
+                      </Link>
+                      {": "}
+                      {entry.error ? `error: ${entry.error}` : entry.job.status}
                     </li>
                   ))}
                 </ul>

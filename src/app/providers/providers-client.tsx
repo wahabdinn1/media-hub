@@ -86,7 +86,7 @@ export function ProvidersClient() {
       {isLoading ? (
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading provider adapters...
+          Loading provider adapters…
         </div>
       ) : null}
 
@@ -255,8 +255,8 @@ function ProviderAdapterCard({
               <h2 className="text-base font-semibold text-text-primary">{adapter.displayName}</h2>
               <ProviderBadge providerKey={adapter.key} isDefault={connection?.isDefault} />
             </div>
-            <div className="font-mono text-xs text-text-secondary">
-              {adapter.pinnedApiHost ?? "No external host"} · descriptor v{cap.version}
+            <div className="tabular-nums text-xs text-text-secondary">
+              <code className="font-mono">{adapter.pinnedApiHost ?? "No external host"}</code>, descriptor v{cap.version}
             </div>
           </div>
 
@@ -371,7 +371,7 @@ function ProviderAdapterCard({
                     disabled={disconnectMutation.isPending}
                     className="inline-flex h-8 items-center rounded-md bg-danger px-3 text-xs font-medium text-primary-foreground"
                   >
-                    {disconnectMutation.isPending ? "Disconnecting..." : "Confirm disconnect"}
+                    {disconnectMutation.isPending ? "Disconnecting…" : "Confirm disconnect"}
                   </button>
                   <button
                     type="button"
@@ -488,12 +488,12 @@ function ProviderAdapterCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-text-secondary">
-        <span className="font-mono">
+      <div className="flex items-center justify-between border-t border-border pt-3 tabular-nums text-xs text-text-secondary">
+        <span>
           Rate limit: {cap.rateLimit.requestsPerWindow}/{cap.rateLimit.windowSeconds}s
         </span>
         {connection?.lastTestedAt ? (
-          <span className="font-mono">
+          <span>
             Tested: {new Date(connection.lastTestedAt).toLocaleTimeString()}
           </span>
         ) : (

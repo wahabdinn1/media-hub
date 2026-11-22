@@ -123,7 +123,7 @@ export function Topbar() {
             onClick={() => setNewMenuOpen((o) => !o)}
             aria-expanded={newMenuOpen}
             aria-haspopup="menu"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+            className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3.5 text-sm font-medium text-primary-foreground shadow-[var(--shadow-btn-primary)] transition-colors hover:bg-primary-hover"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t.topbar.newAction}</span>

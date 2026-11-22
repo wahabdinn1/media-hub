@@ -83,7 +83,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading workflow...
+        Loading workflow…
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-text-primary">Structured step sequence</h2>
           {workflow.nextRunAt ? (
-            <span className="inline-flex items-center gap-1 font-mono text-xs text-text-secondary">
+            <span className="inline-flex items-center gap-1 tabular-nums text-xs text-text-secondary">
               <Clock className="h-3.5 w-3.5" />
               Next scheduled: {new Date(workflow.nextRunAt).toLocaleString()}
             </span>
@@ -246,7 +246,7 @@ export function WorkflowDetailClient({ workflowId }: { workflowId: string }) {
                         className="flex items-center justify-between gap-2 text-text-secondary"
                       >
                         <span>
-                          <span className="font-mono text-text-primary">{sr.type}</span> —{" "}
+                          <span className="font-mono text-text-primary">{sr.type}</span>:{" "}
                           {sr.summary}
                         </span>
                         <StatusBadge

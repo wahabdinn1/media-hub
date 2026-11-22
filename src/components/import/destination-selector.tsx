@@ -137,7 +137,7 @@ export function DestinationSelector({
               Select one or more active hosts. Multi-provider uploads keep one universal asset in MediaHub with separate tracked jobs per host.
             </p>
           </div>
-          <span className="rounded bg-surface-raised px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+          <span className="rounded bg-surface-raised px-2 py-0.5 tabular-nums text-xs text-text-secondary">
             {value.providerConnectionIds.length} selected
           </span>
         </div>
@@ -253,7 +253,7 @@ export function DestinationSelector({
             Add to MediaHub collections (multi-select, optional)
           </div>
           {value.collectionIds.length > 0 ? (
-            <span className="rounded bg-primary-subtle px-2 py-0.5 font-mono text-[11px] text-primary">
+            <span className="rounded bg-primary-subtle px-2 py-0.5 tabular-nums text-xs text-primary">
               {value.collectionIds.length} selected
             </span>
           ) : null}

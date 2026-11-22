@@ -146,7 +146,7 @@ export default function SettingsPage() {
           patchMutation.isPending || isLoading ? (
             <span className="inline-flex items-center gap-1.5 text-xs text-text-secondary">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Syncing with D1...
+              Syncing with D1…
             </span>
           ) : (
             <StatusBadge label="Persisted in D1" tone="success" dot />
@@ -288,7 +288,7 @@ export default function SettingsPage() {
             {dryRunCounts && pendingBackupJson ? (
               <div className="space-y-2 rounded-md border border-border bg-surface p-3">
                 <div className="font-medium text-text-primary">Dry-run summary</div>
-                <div className="grid grid-cols-2 gap-1 font-mono text-[11px] text-text-secondary">
+                <div className="grid grid-cols-2 gap-1 tabular-nums text-xs text-text-secondary">
                   <span>Assets: {dryRunCounts.assets ?? 0}</span>
                   <span>Collections: {dryRunCounts.collections ?? 0}</span>
                   <span>Folders: {dryRunCounts.providerFolders ?? 0}</span>

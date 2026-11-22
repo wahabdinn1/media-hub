@@ -392,7 +392,7 @@ export function AutomationClient() {
                       onChange={(e) => setStepCollectionId(e.target.value)}
                       className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary"
                     >
-                      <option value="">Choose collection...</option>
+                      <option value="">Choose collection…</option>
                       {collections.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
@@ -458,7 +458,7 @@ export function AutomationClient() {
               onClick={() => createMutation.mutate()}
               className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
             >
-              {createMutation.isPending ? "Saving..." : "Save workflow"}
+              {createMutation.isPending ? "Saving…" : "Save workflow"}
             </button>
             <button
               type="button"
@@ -474,7 +474,7 @@ export function AutomationClient() {
       {isLoading ? (
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading workflows...
+          Loading workflows…
         </div>
       ) : null}
 
@@ -533,9 +533,9 @@ export function AutomationClient() {
                   <Clock className="h-3.5 w-3.5" />
                   {triggerLabel(wf.triggerType)}
                 </span>
-                <span className="font-mono">{wf.steps.length} step(s)</span>
+                <span className="tabular-nums">{wf.steps.length} step(s)</span>
                 {wf.lastRunAt ? (
-                  <span className="font-mono">
+                  <span className="tabular-nums">
                     Last run: {new Date(wf.lastRunAt).toLocaleString()}
                   </span>
                 ) : null}

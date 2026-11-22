@@ -42,7 +42,7 @@ export function Sidebar() {
     <aside
       aria-label="Primary navigation"
       className={cn(
-        "hidden shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-150 md:flex",
+        "hidden shrink-0 flex-col border-r border-border bg-surface md:flex",
         collapsed ? "w-16" : "w-60",
       )}
     >
@@ -51,7 +51,7 @@ export function Sidebar() {
           href="/dashboard"
           className="flex min-w-0 items-center gap-2.5 rounded-md px-1 py-1 text-text-primary"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary font-mono text-xs font-bold text-primary-foreground">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold tracking-tight text-primary-foreground shadow-[var(--shadow-btn-primary)]">
             MH
           </span>
           {!collapsed ? (
@@ -107,8 +107,8 @@ export function Sidebar() {
       </nav>
 
       {!collapsed ? (
-        <div className="border-t border-border px-3 py-3 text-[11px] text-text-secondary">
-          <div className="font-mono text-text-primary">MediaHub v1.0</div>
+        <div className="border-t border-border px-3 py-3 text-xs text-text-secondary">
+          <div className="font-medium text-text-primary">MediaHub v1.0</div>
           <div className="mt-0.5 truncate">Zero-Cost Hybrid Tier</div>
         </div>
       ) : null}

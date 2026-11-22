@@ -397,7 +397,7 @@ export function LibraryClient() {
               ) : (
                 <RefreshCw className="h-3.5 w-3.5" />
               )}
-              {syncMutation.isPending ? "Syncing..." : "Sync from provider"}
+              {syncMutation.isPending ? "Syncing…" : "Sync from provider"}
             </button>
 
             <Link
@@ -471,7 +471,7 @@ export function LibraryClient() {
                 disabled={!newCollectionName.trim() || createCollectionMutation.isPending}
                 className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
               >
-                {createCollectionMutation.isPending ? "Creating..." : "Create"}
+                {createCollectionMutation.isPending ? "Creating…" : "Create"}
               </button>
             </form>
           ) : null}
@@ -592,7 +592,7 @@ export function LibraryClient() {
                 disabled={!newFolderName.trim() || createFolderMutation.isPending}
                 className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
               >
-                {createFolderMutation.isPending ? "Creating..." : "Create"}
+                {createFolderMutation.isPending ? "Creating…" : "Create"}
               </button>
             </form>
           ) : null}
@@ -668,7 +668,7 @@ export function LibraryClient() {
               onChange={(e) => setTargetCollectionId(e.target.value)}
               className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
             >
-              <option value="">Choose collection...</option>
+              <option value="">Choose collection…</option>
               {collectionsList.map((col) => (
                 <option key={col.id} value={col.id}>
                   {col.name}
@@ -686,7 +686,7 @@ export function LibraryClient() {
               }
               className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
             >
-              {bulkAddToCollectionMutation.isPending ? "Adding..." : "Add to collection"}
+              {bulkAddToCollectionMutation.isPending ? "Adding…" : "Add to collection"}
             </button>
           </div>
         </div>
@@ -777,7 +777,7 @@ export function LibraryClient() {
       {isLoading ? (
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading catalog...
+          Loading catalog…
         </div>
       ) : null}
 
@@ -857,7 +857,7 @@ export function LibraryClient() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {data.items.map((item) => (
+              {data.items.map((item, idx) => (
                 <tr key={item.id} className="hover:bg-surface-raised/50">
                   <td className="px-4 py-3">
                     <input
@@ -877,7 +877,8 @@ export function LibraryClient() {
                             src={item.thumbnailUrl}
                             alt=""
                             className="h-full w-full object-cover"
-                            loading="lazy"
+                            loading={idx === 0 ? "eager" : "lazy"}
+                            fetchPriority={idx === 0 ? "high" : undefined}
                           />
                         ) : (
                           <Film className="h-4 w-4 text-text-secondary" />
@@ -925,7 +926,7 @@ export function LibraryClient() {
 
       {data && data.items.length > 0 && viewMode === "grid" ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {data.items.map((item) => (
+          {data.items.map((item, idx) => (
             <Link
               key={item.id}
               href={`/library/${item.id}`}
@@ -938,7 +939,8 @@ export function LibraryClient() {
                     src={item.thumbnailUrl}
                     alt=""
                     className="h-full w-full object-cover"
-                    loading="lazy"
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    fetchPriority={idx === 0 ? "high" : undefined}
                   />
                 ) : (
                   <Film className="h-7 w-7 text-text-secondary" />

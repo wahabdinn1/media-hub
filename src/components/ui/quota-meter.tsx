@@ -37,8 +37,8 @@ export function QuotaMeter({ meter }: { meter: QuotaMeterSnapshot }) {
         aria-label={t.quotas.metrics[meter.metric]}
       >
         <div
-          className={cn("h-full rounded-full transition-all", barColor)}
-          style={{ width: `${Math.max(meter.percent, meter.used > 0 ? 2 : 0)}%` }}
+          className={cn("h-full w-full origin-left rounded-full transition-transform duration-200", barColor)}
+          style={{ transform: `scaleX(${Math.max(meter.percent, meter.used > 0 ? 2 : 0) / 100})` }}
         />
       </div>
       <div className="flex items-center justify-between text-[11px] text-text-secondary">

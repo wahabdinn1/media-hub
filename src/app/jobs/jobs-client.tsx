@@ -151,7 +151,7 @@ export function JobsClient() {
       {isLoading ? (
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading...
+          Loading…
         </div>
       ) : null}
 

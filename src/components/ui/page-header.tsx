@@ -19,7 +19,7 @@ export function PageHeader({
       )}
     >
       <div className="min-w-0 space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
+        <h1 className="font-display text-2xl font-medium tracking-tight text-text-primary sm:text-[1.65rem]">
           {title}
         </h1>
         {subtitle ? (

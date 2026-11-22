@@ -100,7 +100,7 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading batch...
+        Loading batch…
       </div>
     );
   }
@@ -189,7 +189,10 @@ export function BatchDetailClient({ batchId }: { batchId: string }) {
           <span className="font-mono">{pct}%</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
-          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+          <div
+            className="h-full w-full origin-left rounded-full bg-primary transition-transform duration-200"
+            style={{ transform: `scaleX(${pct / 100})` }}
+          />
         </div>
       </div>
 

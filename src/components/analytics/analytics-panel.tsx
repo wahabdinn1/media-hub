@@ -57,7 +57,7 @@ export function AnalyticsPanel() {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading analytics...
+        Loading analytics…
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function AnalyticsPanel() {
               type="button"
               onClick={() => setDays(d)}
               className={cn(
-                "rounded-md px-2.5 py-1 font-mono font-medium",
+                "rounded-md px-2.5 py-1 tabular-nums font-medium active:translate-y-px",
                 days === d
                   ? "bg-surface-raised text-text-primary"
                   : "text-text-secondary hover:text-text-primary",
@@ -113,8 +113,8 @@ export function AnalyticsPanel() {
           <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
             {jobAnalytics.totalJobs}
           </div>
-          <div className="mt-1 font-mono text-xs text-text-secondary">
-            {jobAnalytics.completedJobs} ok · {jobAnalytics.failedJobs} failed
+          <div className="mt-1 tabular-nums text-xs text-text-secondary">
+            {jobAnalytics.completedJobs} ok, {jobAnalytics.failedJobs} failed
           </div>
         </div>
 
@@ -123,7 +123,7 @@ export function AnalyticsPanel() {
           <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
             {jobAnalytics.successRatePercent}%
           </div>
-          <div className="mt-1 font-mono text-xs text-text-secondary">
+          <div className="mt-1 tabular-nums text-xs text-text-secondary">
             {jobAnalytics.unknownJobs} unclear outcome
           </div>
         </div>

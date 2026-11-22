@@ -382,7 +382,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading asset...
+        Loading asset…
       </div>
     );
   }
@@ -717,7 +717,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                       onChange={(e) => setAddCollectionId(e.target.value)}
                       className="h-8 flex-1 rounded-md border border-border bg-surface px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
                     >
-                      <option value="">Add to collection...</option>
+                      <option value="">Add to collection…</option>
                       {availableCollections.map((col) => (
                         <option key={col.id} value={col.id}>
                           {col.name}
@@ -798,9 +798,9 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                           setActionNotice(null);
                           actionMutation.mutate({ action: "soft_delete_local" });
                         }}
-                        className="inline-flex h-8 items-center rounded-md border border-border bg-bg px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
+                        className="inline-flex h-8 items-center whitespace-nowrap rounded-md border border-border bg-bg px-3 text-xs font-medium text-text-primary hover:bg-surface-raised disabled:opacity-50"
                       >
-                        Remove from MediaHub only
+                        Remove locally
                       </button>
                       {canDeleteRemote ? (
                         <button
@@ -1021,7 +1021,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                   <select
                     value={subFormatInput}
                     onChange={(e) => setSubFormatInput(e.target.value as "srt" | "vtt")}
-                    className="h-9 rounded-lg border border-border bg-bg px-3 font-mono text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
+                    className="h-9 rounded-lg border border-border bg-bg px-3 text-xs text-text-primary focus:border-primary focus:outline-none sm:col-span-1"
                   >
                     <option value="vtt">VTT</option>
                     <option value="srt">SRT</option>
@@ -1067,7 +1067,7 @@ export function AssetDetailClient({ assetId }: { assetId: string }) {
                   <li key={sub.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-xs">
                     <div className="flex items-center gap-2">
                       <StatusBadge label={sub.language} tone="info" />
-                      <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] uppercase text-text-secondary">
+                      <span className="rounded bg-surface-raised px-1.5 py-0.5 text-xs text-text-secondary">
                         {sub.format}
                       </span>
                       <a

@@ -34,7 +34,7 @@ const AnalyticsPanel = dynamic(
     loading: () => (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading charts...
+        Loading charts…
       </div>
     ),
   },
@@ -228,7 +228,7 @@ export function DashboardClient() {
                 )}
               </div>
               {defaultConn?.accountInfo?.videoCount !== undefined ? (
-                <div className="mt-1.5 font-mono text-xs text-text-secondary">
+                <div className="mt-1.5 tabular-nums text-xs text-text-secondary">
                   {new Intl.NumberFormat("en-US").format(defaultConn.accountInfo.videoCount)} remote videos
                 </div>
               ) : null}
@@ -242,8 +242,8 @@ export function DashboardClient() {
               <div className="mt-2 font-mono text-xl font-semibold text-text-primary">
                 {summary?.jobsInProgress ?? 0}
               </div>
-              <div className="mt-1 font-mono text-xs text-text-secondary">
-                {summary?.jobsCompleted ?? 0} completed · {summary?.jobsFailed ?? 0} failed
+              <div className="mt-1 tabular-nums text-xs text-text-secondary">
+                {summary?.jobsCompleted ?? 0} completed, {summary?.jobsFailed ?? 0} failed
               </div>
             </Link>
 
